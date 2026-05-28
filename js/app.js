@@ -188,9 +188,13 @@ async function loginWithGoogle() {
         console.log('Usuario autenticado (Google):', user.displayName);
         return user;
     } catch (error) {
-        console.error('Error de autenticación:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
-            alert('Error al iniciar sesión: ' + error.message);
+        console.error('Error de autenticacion:', error);
+        if (error.code === 'auth/popup-blocked') {
+            alert('Se ha bloqueado el popup de Google para iniciar sesion. Por favor habilita los popups para este sitio y vuelve a intentarlo.');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            // El usuario cerro el popup, no hacemos nada
+        } else {
+            alert('Error al iniciar sesion: ' + error.message);
         }
         throw error;
     }
@@ -328,17 +332,70 @@ function renderTasks() {
     });
 }
 
-function renderBubbles() {
+function getTodayStats() {
+    const history = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
+    const today = new Date().toISOString().split('T')[0];
+    const data = history[today] || { sessions: 0, minutes: 0 };
+    // Si ya se trackearon tareas durante el día, devolver datos de tareas activas
+    return { sessions: data.sessions || 0, minutes: data.minutes || 0 };
+}
+
+function saveSessionToHistory(sessionMinutes) {
+    const history = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
+    const today = new Date().toISOString().split('T')[0];
+    if (!history[today]) {
+        history[today] = { sessions: 0, minutes: 0 };
+    }
+    history[today].sessions += 1;
+    history[today].minutes += sessionMinutes;
+    localStorage.setItem('mindfocus-history', JSON.stringify(history));
+}
+    // Limpiar burbujas y SVG anteriores
     const oldBubbles = elements.canvasArea.querySelectorAll('.task-bubble');
     oldBubbles.forEach(bubble => bubble.remove());
+    const oldSvg = elements.canvasArea.querySelector('.svg-overlay');
+    if (oldSvg) oldSvg.remove();
+    const oldDayBubble = elements.canvasArea.querySelector('.day-bubble');
+    if (oldDayBubble) oldDayBubble.remove();
+
+    // Estado vacío
     if (appState.tasks.length === 0) {
         elements.canvasPlaceholder.style.display = 'block';
         return;
     }
     elements.canvasPlaceholder.style.display = 'none';
+
+    const canvasRect = elements.canvasArea.getBoundingClientRect();
+    const centerX = canvasRect.width / 2;
+    const centerY = canvasRect.height / 2;
+
+    // SVG para líneas conectadas
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'svg-overlay');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    elements.canvasArea.appendChild(svg);
+
+    // Burbuja del día (central)
+    const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
+    const dayData = getTodayStats();
+    const dayBubble = document.createElement('div');
+    dayBubble.className = 'day-bubble';
+    dayBubble.style.left = `${centerX - 60}px`;
+    dayBubble.style.top = `${centerY - 60}px`;
+    dayBubble.innerHTML = `
+        <div style="font-size:1.1rem">${today}</div>
+        <div style="font-size:0.75rem; opacity:0.9">
+            ${dayData.minutes} min ${dayData.sessions} sesiones
+        </div>
+    `;
+    elements.canvasArea.appendChild(dayBubble);
+
+    // Renderizar burbujas de tareas
     appState.tasks.forEach(task => {
         const totalMinutes = Math.floor(task.totalFocusTime / 60);
-        const baseSize = 80;
+        const baseSize = 96;    // 80 * 1.2 (20% más grande)
         const sizeIncrement = Math.min(totalMinutes * 2, 120);
         const bubbleSize = baseSize + sizeIncrement;
         const bubble = document.createElement('div');
@@ -354,6 +411,15 @@ function renderBubbles() {
             task.position = pos;
         }
         bubble.style.animationDelay = `${Math.random() * 2}s`;
+
+        // Dibujar línea SVG desde burbuja del día hasta esta burbuja
+        const line = document.createElementNS(svgNS, 'line');
+        line.setAttribute('x1', centerX);
+        line.setAttribute('y1', centerY);
+        line.setAttribute('x2', pos.x + bubbleSize / 2);
+        line.setAttribute('y2', pos.y + bubbleSize / 2);
+        svg.appendChild(line);
+
         bubble.addEventListener('click', (e) => {
             e.stopPropagation();
             selectTask(task.id);
@@ -395,8 +461,8 @@ function selectTask(taskId) {
     appState.secondsLeft = 45 * 60;
     elements.timerTaskName.textContent = task.name;
     elements.timerStatus.textContent = 'MODO FOCO';
-    elements.timerStatus.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-    elements.timerStatus.style.color = '#4CAF50';
+    elements.timerStatus.style.backgroundColor = 'rgba(0, 176, 255, 0.1)';
+    elements.timerStatus.style.color = '#00B0FF';
     updateTimerDisplay();
     elements.timerOverlay.classList.add('active');
     console.log(`Tarea seleccionada: ${task.name}`);
@@ -465,11 +531,13 @@ async function timerFinished() {
             renderTasks();
             renderBubbles();
         }
+        // Guardar en historial del día
+        saveSessionToHistory(45);
         appState.isBreak = true;
         appState.secondsLeft = 15 * 60;
         elements.timerStatus.textContent = 'MODO DESCANSO';
-        elements.timerStatus.style.backgroundColor = 'rgba(33, 150, 243, 0.1)';
-        elements.timerStatus.style.color = '#2196F3';
+        elements.timerStatus.style.backgroundColor = 'rgba(0, 176, 255, 0.1)';
+        elements.timerStatus.style.color = '#00B0FF';
         setTimeout(() => {
             alert('¡Bloque de foco completado! Toma un descanso de 15 minutos.');
         }, 100);
@@ -478,8 +546,8 @@ async function timerFinished() {
         appState.isBreak = false;
         appState.secondsLeft = 45 * 60;
         elements.timerStatus.textContent = 'MODO FOCO';
-        elements.timerStatus.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-        elements.timerStatus.style.color = '#4CAF50';
+        elements.timerStatus.style.backgroundColor = 'rgba(0, 176, 255, 0.1)';
+        elements.timerStatus.style.color = '#00B0FF';
         setTimeout(() => {
             alert('¡Descanso terminado! Listo para otro bloque de foco.');
         }, 100);

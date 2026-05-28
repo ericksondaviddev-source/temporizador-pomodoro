@@ -19,6 +19,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Forzar selección de cuenta y evitar problemas de popup
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 // Exportar todo lo que necesitamos
 export { 
   auth, 
