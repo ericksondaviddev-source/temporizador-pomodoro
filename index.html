@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindFocus - Temporizador Pomodoro con Mapa Mental</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Barra superior: Logo, Login y Switch de Tema -->
+    <header class="top-bar">
+        <div class="logo-container">
+            <h1>MindFocus</h1>
+            <span class="tagline">Mapa Mental Productivo</span>
+        </div>
+        <div class="header-actions">
+            <div class="auth-section" id="authSection">
+                <button class="btn-login" id="btnLogin">
+                    <span class="login-icon">🔐</span>
+                    <span>Iniciar Sesión</span>
+                </button>
+                <div class="user-info hidden" id="userInfo">
+                    <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
+                    <span class="user-name" id="userName"></span>
+                    <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
+                </div>
+            </div>
+            <button class="theme-switch" id="themeSwitch" aria-label="Cambiar tema">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenedor principal -->
+    <div class="app-container">
+        <!-- Panel lateral izquierdo: Lista de tareas -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Mis Tareas</h2>
+                <button class="btn-add" id="btnAddTask">+</button>
+            </div>
+            
+            <div class="task-list" id="taskList">
+                <!-- Las tareas se agregarán dinámicamente aquí -->
+            </div>
+
+            <div class="stats-container">
+                <h3>Estadísticas</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Sesiones hoy:</span>
+                    <span class="stat-value" id="sessionsToday">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Minutos de foco:</span>
+                    <span class="stat-value" id="minutesFocused">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área principal: Canvas del Mapa Mental -->
+        <main class="canvas-area" id="canvasArea">
+            <div class="canvas-placeholder" id="canvasPlaceholder">
+                <p>No hay tareas seleccionadas</p>
+                <span>Haz clic en una burbuja para comenzar a enfocarte</span>
+            </div>
+            <!-- Las burbujas flotantes se generarán aquí -->
+        </main>
+    </div>
+
+    <!-- Modal para Agregar Tarea -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2>Agregar Nueva Tarea</h2>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskName">Nombre de la tarea</label>
+                    <input type="text" id="taskName" required placeholder="Ej: Estudiar JavaScript">
+                </div>
+                <div class="form-group">
+                    <label for="taskColor">Color</label>
+                    <input type="color" id="taskColor" value="#4CAF50">
+                </div>
+                <div class="form-group">
+                    <label for="taskNotes">Notas / Descripción</label>
+                    <textarea id="taskNotes" rows="3" placeholder="Detalles sobre la tarea..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Guardar Tarea</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal del Temporizador -->
+    <div class="timer-overlay" id="timerOverlay">
+        <div class="timer-modal">
+            <button class="close-timer" id="closeTimer">&times;</button>
+            <h2 id="timerTaskName">Nombre de la Tarea</h2>
+            <div class="timer-display">
+                <span id="timerMinutes">45</span>:<span id="timerSeconds">00</span>
+            </div>
+            <div class="timer-status" id="timerStatus">Modo Foco</div>
+            <div class="timer-controls">
+                <button class="btn-control" id="btnStart">Iniciar</button>
+                <button class="btn-control" id="btnPause">Pausar</button>
+                <button class="btn-control" id="btnReset">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
