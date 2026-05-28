@@ -55,6 +55,19 @@
                     <span class="stat-value" id="minutesFocused">0</span>
                 </div>
             </div>
+
+            <!-- Historial Semanal -->
+            <div class="history-container">
+                <h3>Historial Semanal</h3>
+                <div class="history-chart" id="historyChart">
+                    <!-- Barras generadas dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Botón Exportar -->
+            <button class="btn-export" id="btnExport">
+                📥 Exportar Datos
+            </button>
         </aside>
 
         <!-- Área principal: Canvas del Mapa Mental -->
@@ -95,8 +108,14 @@
         <div class="timer-modal">
             <button class="close-timer" id="closeTimer">&times;</button>
             <h2 id="timerTaskName">Nombre de la Tarea</h2>
-            <div class="timer-display">
-                <span id="timerMinutes">45</span>:<span id="timerSeconds">00</span>
+            <div class="timer-progress-circle">
+                <svg class="progress-ring" width="200" height="200" viewBox="0 0 200 200">
+                    <circle class="progress-ring__bg" cx="100" cy="100" r="90" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="8"/>
+                    <circle class="progress-ring__circle" cx="100" cy="100" r="90" fill="none" stroke="#00B0FF" stroke-width="8" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="565.48" stroke-dashoffset="0"/>
+                </svg>
+                <div class="timer-display">
+                    <span id="timerMinutes">45</span>:<span id="timerSeconds">00</span>
+                </div>
             </div>
             <div class="timer-status" id="timerStatus">Modo Foco</div>
             <div class="timer-controls">

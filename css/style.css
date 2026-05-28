@@ -591,7 +591,7 @@ input[type="color"] {
     margin-bottom: 2rem;
     padding: 0.5rem 1.5rem;
     border-radius: 20px;
-    background-color: rgba(76, 175, 80, 0.1);
+    background-color: rgba(0, 176, 255, 0.1);
     color: var(--accent-color);
     display: inline-block;
 }
@@ -636,6 +636,133 @@ input[type="color"] {
 
 .close-timer:hover {
     color: var(--text-primary);
+}
+
+/* ---- 8. Mejoras Visuales ---- */
+
+/* Timer Circular Animado */
+.timer-progress-circle {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 1rem auto;
+}
+
+.timer-progress-circle .progress-ring {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.timer-progress-circle .progress-ring__bg {
+    stroke: rgba(0, 0, 0, 0.05);
+}
+
+.timer-progress-circle .progress-ring__circle {
+    transition: stroke-dashoffset 0.3s ease;
+    filter: drop-shadow(0 0 8px rgba(0, 176, 255, 0.5));
+}
+
+body.dark-theme .timer-progress-circle .progress-ring__bg {
+    stroke: rgba(255, 255, 255, 0.05);
+}
+
+/* Sidebar - Historial Semanal */
+.history-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.history-container h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.history-chart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 100px;
+    gap: 0.5rem;
+    padding-bottom: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.history-chart .history-bar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.history-chart .history-bar:hover {
+    transform: translateY(-4px);
+}
+
+.history-chart .bar {
+    width: 100%;
+    min-height: 4px;
+    background-color: var(--accent-color);
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+    position: relative;
+}
+
+.history-chart span {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+    position: absolute;
+    bottom: -1.75rem;
+    white-space: nowrap;
+}
+
+/* Botón Exportar */
+.btn-export {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-export:hover {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* Drag & Drop */
+.task-bubble.draggable {
+    cursor: grab;
+}
+
+.task-bubble.dragging {
+    opacity: 0.7;
+    cursor: grabbing;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0, 176, 255, 0.6);
 }
 
 /* ---- 9. Responsive (Móviles) ---- */
