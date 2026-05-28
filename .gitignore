@@ -1,3 +1,6 @@
+# Platform credentials and sensitive config
+.platforms-config.json
+
 # Dependencies
 node_modules/
 
