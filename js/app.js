@@ -184,7 +184,7 @@ async function loadTasksFromFirestore() {
         const snap = await getDocs(q);
         appState.tasks = [];
         snap.forEach(d => appState.tasks.push({ id: d.id, ...d.data() }));
-        renderTasks(); renderBubbles(); renderHistory();
+        renderTasks(); renderHistory();
     } catch (e) { console.error('Load tasks error', e); }
 }
 async function saveTaskToFirestore(task) {
@@ -354,46 +354,28 @@ function exportData(format) {
 function renderTasks() {
     elements.taskList.innerHTML = '';
     if (!appState.tasks.length) {
-        elements.taskList.innerHTML = '<p class="no-tasks" style="text-align:center;padding:1rem;color:var(--text-secondary)">No hay tareas. ¡Agrega una!</p>';
+        elements.taskList.innerHTML = '<p class="no-tasks">No hay tareas. ¡Agrega una!</p>';
         return;
     }
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
-        const bar = document.createElement('div'); bar.className = 'task-bar'; bar.style.setProperty('--bar-color', task.color);
+        const bar = document.createElement('div');
+        bar.className = 'task-bar';
+        bar.style.setProperty('--bar-color', task.color);
         bar.innerHTML = `
-            <div class="task-bar-header" onclick="toggleTaskBar(this)">
-                <div class="task-bar-color" style="background-color:${task.color}"></div>
-                <div class="task-bar-info">
-                    <div class="task-bar-name">${escapeHtml(task.name)}</div>
-                    <div class="task-bar-meta">
-                        <span>${mins} min</span>
-                        <span>·</span>
-                        <span>${task.sessionsCompleted || 0} ses</span>
-                    </div>
-                </div>
-                <div class="task-bar-actions">
-                    <button class="task-bar-delete" onclick="deleteTask('${task.id}', event)">🗑️</button>
-                </div>
-                <button class="task-bar-expand">▼</button>
+            <div class="task-bar-color" style="background-color:${task.color}"></div>
+            <div class="task-bar-info">
+                <div class="task-bar-name">${escapeHtml(task.name)}</div>
+                <div class="task-bar-meta">${mins} min · ${task.sessionsCompleted || 0} ses</div>
+                ${task.notes ? `<div class="task-bar-notes">${escapeHtml(task.notes)}</div>` : ''}
             </div>
-            <div class="task-bar-details">
-                <p class="task-bar-notes">${escapeHtml(task.notes || 'Sin notas')}</p>
-                <div class="task-bar-stats">
-                    <span>⏱️ ${mins} minutos</span>
-                    <span>✓ ${task.sessionsCompleted || 0} sesiones</span>
-                </div>
-            </div>
+            <button class="task-bar-delete" onclick="deleteTask('${task.id}', event)">🗑️</button>
         `;
-        bar.addEventListener('click', (e) => { if (!e.target.closest('.task-bar-delete') && !e.target.closest('.task-bar-expand')) selectTask(task.id); });
+        bar.addEventListener('click', (e) => {
+            if (!e.target.closest('.task-bar-delete')) selectTask(task.id);
+        });
         elements.taskList.appendChild(bar);
     });
-}
-function toggleTaskBar(header) {
-    const bar = header.closest('.task-bar');
-    const details = bar.querySelector('.task-bar-details');
-    const expand = bar.querySelector('.task-bar-expand');
-    details.classList.toggle('expanded');
-    expand.classList.toggle('expanded');
 }
 function deleteTask(taskId, e) {
     e.stopPropagation();
@@ -679,12 +661,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadPresets();
-    renderTasks(); renderBubbles(); renderHistory(); updateStats();
+    renderTasks(); renderHistory(); updateStats();
 });
 
 // Funciones globales para onclick inline
 window.loadPreset = loadPreset;
 window.deletePreset = deletePreset;
-window.toggleTaskBar = toggleTaskBar;
 window.deleteTask = deleteTask;
-window.toggleSidebarSection = toggleSidebarSection;
+window.toggleSidebar = toggleSidebar;

@@ -40,62 +40,43 @@
         <!-- Panel lateral izquierdo: Lista de tareas -->
         <aside class="sidebar" id="sidebar">
             <!-- Perfil Section -->
-            <div class="sidebar-section profile-container" id="profileContainer">
-                <div class="sidebar-section-header" onclick="toggleSidebarSection('profile')">
-                    <span class="sidebar-section-title">👤 Mi Cuenta</span>
-                    <button class="sidebar-section-toggle" id="profileToggleBtn">▼</button>
-                </div>
-                <div class="sidebar-section-content" id="profileSectionContent">
-                    <div class="profile-header">
-                        <div class="profile-avatar" id="profileAvatar">👤</div>
-                        <div class="profile-info">
-                            <div class="profile-name" id="profileName">Usuario</div>
-                            <div class="profile-email" id="profileEmail">email@example.com</div>
-                        </div>
+            <div class="sidebar-profile" id="profileContainer">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profileName">Usuario</div>
+                        <div class="profile-email" id="profileEmail">email@example.com</div>
                     </div>
-                    <button class="btn-logout" id="btnLogout" style="width:100%;margin-top:0.5rem;padding:0.5rem;">Cerrar Sesión</button>
+                    <button class="btn-logout" id="btnLogout" title="Cerrar sesión">🚪</button>
                 </div>
             </div>
 
             <!-- Mis Tareas -->
-            <div class="sidebar-section" id="tasksSection">
-                <div class="sidebar-section-header" onclick="toggleSidebarSection('tasks')">
-                    <span class="sidebar-section-title">📋 Mis Tareas</span>
+            <div class="sidebar-tasks">
+                <div class="sidebar-tasks-header">
+                    <h3>📋 Mis Tareas</h3>
                     <button class="btn-add" id="btnAddTask">+</button>
-                    <button class="sidebar-section-toggle" id="tasksToggleBtn">▼</button>
                 </div>
-                <div class="sidebar-section-content" id="tasksSectionContent">
-                    <div class="task-list" id="taskList"></div>
-                </div>
+                <div class="task-list" id="taskList"></div>
             </div>
 
             <!-- Estadísticas -->
-            <div class="sidebar-section" id="statsSection">
-                <div class="sidebar-section-header" onclick="toggleSidebarSection('stats')">
-                    <span class="sidebar-section-title">📊 Estadísticas</span>
-                    <button class="sidebar-section-toggle" id="statsToggleBtn">▼</button>
+            <div class="sidebar-stats">
+                <h3>📊 Estadísticas</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Sesiones hoy:</span>
+                    <span class="stat-value" id="sessionsToday">0</span>
                 </div>
-                <div class="sidebar-section-content" id="statsSectionContent">
-                    <div class="stat-item">
-                        <span class="stat-label">Sesiones hoy:</span>
-                        <span class="stat-value" id="sessionsToday">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Minutos de foco:</span>
-                        <span class="stat-value" id="minutesFocused">0</span>
-                    </div>
+                <div class="stat-item">
+                    <span class="stat-label">Minutos de foco:</span>
+                    <span class="stat-value" id="minutesFocused">0</span>
                 </div>
             </div>
 
             <!-- Historial Semanal -->
-            <div class="sidebar-section" id="historySection">
-                <div class="sidebar-section-header" onclick="toggleSidebarSection('history')">
-                    <span class="sidebar-section-title">📅 Historial</span>
-                    <button class="sidebar-section-toggle" id="historyToggleBtn">▼</button>
-                </div>
-                <div class="sidebar-section-content" id="historySectionContent">
-                    <div class="history-chart" id="historyChart"></div>
-                </div>
+            <div class="sidebar-history">
+                <h3>📅 Historial Semanal</h3>
+                <div class="history-chart" id="historyChart"></div>
             </div>
         </aside>
 
