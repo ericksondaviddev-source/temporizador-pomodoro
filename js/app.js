@@ -192,7 +192,6 @@ function renderBubbles() {
     elements.canvasArea.appendChild(dayBubble);
 
     const SIZE_INCREMENT = 1.06;
-    const isMobile = window.innerWidth <= 768;
     const mobileMultiplier = isMobile ? 0.7 : 1;
 
     appState.tasks.forEach(task => {
