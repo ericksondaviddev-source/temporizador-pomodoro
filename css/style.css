@@ -1,36 +1,42 @@
 /* ==========================================
-   MINDFOCUS - CSS Master Stylesheet
+   MINDFOCUS - Obsidian Aesthetic CSS
    ========================================== */
 
 /* ---- 1. Reset y Variables CSS ---- */
 :root {
-    /* Colores Base - Tema Claro */
-    --bg-primary: #F5F5F7;
-    --bg-card: #FFFFFF;
-    --text-primary: #1A1A2E;
-    --text-secondary: #6B6B76;
+    /* Colores Obsidian - Tema Oscuro (default) */
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16162a;
+    --bg-card: #242442;
+    --text-primary: #e8e8ed;
+    --text-secondary: #8888a0;
     --accent-color: #00B0FF;
-    --border-color: #E0E0E0;
-    --sidebar-bg: #FFFFFF;
-    --header-bg: #FFFFFF;
-    --timer-bg: rgba(255, 255, 255, 0.95);
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.1);
+    --accent-glow: rgba(0, 176, 255, 0.3);
+    --border-color: rgba(255, 255, 255, 0.06);
+    --sidebar-bg: #16162a;
+    --header-bg: #16162a;
+    --timer-bg: rgba(22, 22, 42, 0.98);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --gradient-day: linear-gradient(135deg, #00B0FF, #0080cc);
+    --gradient-accent: linear-gradient(135deg, #00B0FF, #00d4aa);
 }
 
-/* Tema Oscuro */
-body.dark-theme {
-    --bg-primary: #1A1A2E;
-    --bg-card: #2D2D44;
-    --text-primary: #E0E0E0;
-    --text-secondary: #9A9AAA;
+/* Tema Claro - Mantener claro pero con toque Obsidian */
+body.light-theme {
+    --bg-primary: #f0f0f5;
+    --bg-secondary: #e8e8f0;
+    --bg-card: #ffffff;
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b6b80;
     --accent-color: #00B0FF;
-    --border-color: #3D3D55;
-    --sidebar-bg: #2D2D44;
-    --header-bg: #2D2D44;
-    --timer-bg: rgba(45, 45, 68, 0.95);
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.4);
+    --accent-glow: rgba(0, 176, 255, 0.2);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --sidebar-bg: #ffffff;
+    --header-bg: #ffffff;
+    --timer-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Reset Básico */
@@ -41,12 +47,15 @@ body.dark-theme {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
     overflow: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
 }
 
 /* ---- 2. Barra Superior (Header) ---- */
@@ -54,11 +63,39 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.5rem;
     background-color: var(--header-bg);
-    box-shadow: var(--shadow);
+    border-bottom: 1px solid var(--border-color);
     z-index: 100;
     position: relative;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.logo-container .signature {
+    font-size: 0.65rem;
+    color: var(--accent-color);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.logo-container h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.logo-container .tagline {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 400;
 }
 
 .header-actions {
@@ -71,31 +108,32 @@ body {
 .auth-section {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .btn-login {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: var(--accent-color);
-    color: white;
+    gap: 0.4rem;
+    padding: 0.4rem 0.9rem;
+    background: var(--gradient-accent);
+    color: #fff;
     border: none;
-    border-radius: 20px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 12px var(--accent-glow);
 }
 
 .btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .login-icon {
-    font-size: 1.2rem;
+    font-size: 0.9rem;
 }
 
 .user-info {
@@ -105,28 +143,28 @@ body {
 }
 
 .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--accent-color);
 }
 
 .user-name {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 500;
     color: var(--text-primary);
-    max-width: 120px;
+    max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .btn-logout {
-    padding: 0.25rem 0.75rem;
-    background: none;
+    padding: 0.3rem 0.7rem;
+    background: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 15px;
+    border-radius: 6px;
     color: var(--text-secondary);
     font-size: 0.75rem;
     cursor: pointer;
@@ -134,77 +172,51 @@ body {
 }
 
 .btn-logout:hover {
-    background-color: #f44336;
-    color: white;
-    border-color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+    border-color: rgba(244, 67, 54, 0.3);
 }
 
 .hidden {
     display: none !important;
 }
 
-.logo-container .signature {
-    font-size: 0.75rem;
-    color: var(--accent-color);
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-bottom: 0.25rem;
-    display: block;
-}
-
-.logo-container h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.tagline {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    font-weight: 400;
-    display: block;
-}
-
 .theme-switch {
-    background: none;
-    border: 2px solid var(--border-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .theme-switch:hover {
-    background-color: var(--bg-card);
-    transform: rotate(180deg);
+    background: var(--bg-card);
+    border-color: var(--accent-color);
 }
 
 /* ---- 3. Layout Principal: Sidebar + Canvas ---- */
 .app-container {
     display: flex;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 57px);
     overflow: hidden;
 }
 
 /* ---- 4. Panel Lateral (Sidebar) ---- */
 .sidebar {
-    width: 300px;
+    width: 280px;
     background-color: var(--sidebar-bg);
-    padding: 1.5rem;
+    padding: 1.25rem;
     overflow-y: auto;
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -215,109 +227,107 @@ body {
 }
 
 .sidebar-header h2 {
-    font-size: 1.25rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-primary);
+    letter-spacing: -0.01em;
 }
 
 .btn-add {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     border: none;
-    background-color: var(--accent-color);
-    color: white;
-    font-size: 1.5rem;
+    background: var(--gradient-accent);
+    color: #fff;
+    font-size: 1.2rem;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
+    box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 .btn-add:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px var(--accent-glow);
 }
 
 /* Lista de Tareas */
 .task-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-grow: 1;
+    overflow-y: auto;
 }
 
 .task-card {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1rem;
+    border-radius: 8px;
+    padding: 0.75rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
-}
-
-.task-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background-color: var(--accent-color);
-    border-radius: 12px 0 0 12px;
 }
 
 .task-card:hover {
-    transform: translateX(5px);
-    box-shadow: var(--shadow-hover);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-glow);
 }
 
 .task-card h4 {
-    font-size: 1rem;
+    font-size: 0.85rem;
     margin-bottom: 0.25rem;
     color: var(--text-primary);
+    font-weight: 500;
 }
 
 .task-card p {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
+.task-card small {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
 /* Estadísticas */
 .stats-container {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1rem;
+    border-radius: 8px;
+    padding: 0.75rem;
 }
 
 .stats-container h3 {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 .stat-item {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--border-color);
+    padding: 0.35rem 0;
 }
 
-.stat-item:last-child {
-    border-bottom: none;
+.stat-item:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
 }
 
 .stat-value {
     font-weight: 700;
     color: var(--accent-color);
+    font-size: 0.85rem;
 }
 
 /* ---- 5. Área del Canvas (Mapa Mental) ---- */
@@ -326,6 +336,9 @@ body {
     position: relative;
     overflow: hidden;
     background-color: var(--bg-primary);
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(0, 176, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 212, 170, 0.03) 0%, transparent 50%);
     transition: background-color 0.3s ease;
 }
 
@@ -337,17 +350,17 @@ body {
     text-align: center;
     color: var(--text-secondary);
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 .canvas-placeholder p {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
 }
 
 .canvas-placeholder span {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 /* ---- 6. Burbujas Flotantes ---- */
@@ -359,20 +372,24 @@ body {
     justify-content: center;
     text-align: center;
     font-weight: 600;
-    color: white;
+    color: #fff;
     cursor: pointer;
-    box-shadow: var(--shadow-hover);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     user-select: none;
     animation: float 6s ease-in-out infinite;
     padding: 1rem;
     word-break: break-word;
     overflow: hidden;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .task-bubble:hover {
-    transform: scale(1.15);
+    transform: scale(1.1);
     z-index: 10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     filter: brightness(1.1);
 }
 
@@ -389,13 +406,13 @@ body {
 
 .svg-overlay line {
     stroke: var(--accent-color);
-    stroke-width: 2;
-    opacity: 0.4;
+    stroke-width: 1.5;
+    opacity: 0.3;
     transition: opacity 0.3s ease;
 }
 
 .svg-overlay line:hover {
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 /* Burbuja del Día (central) */
@@ -404,39 +421,35 @@ body {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-color), #0066cc);
+    background: var(--gradient-day);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: white;
+    color: #fff;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 0 0 4px rgba(0, 176, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 8px 32px rgba(0, 0, 0, 0.3);
     z-index: 5;
     animation: pulse-day 3s ease-in-out infinite;
     user-select: none;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     line-height: 1.3;
     padding: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -50%);
 }
 
 @keyframes pulse-day {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 4px rgba(0, 176, 255, 0.3), 0 8px 32px rgba(0,0,0,0.2); }
-    50% { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 0 0 8px rgba(0, 176, 255, 0.2), 0 12px 40px rgba(0,0,0,0.3); }
+    0%, 100% { box-shadow: 0 0 0 3px var(--accent-glow), 0 8px 32px rgba(0,0,0,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(0, 176, 255, 0.15), 0 12px 40px rgba(0,0,0,0.4); }
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-15px) rotate(2deg); }
-    66% { transform: translateY(5px) rotate(-1deg); }
-}
-
-/* Animación de Respiración (al seleccionar) */
-@keyframes breathe {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-    50% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+    0%, 100% { transform: translateY(0px); }
+    33% { transform: translateY(-10px); }
+    66% { transform: translateY(5px); }
 }
 
 /* ---- 7. Modales ---- */
@@ -448,10 +461,10 @@ body {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(8px);
 }
 
 .modal.active {
@@ -460,28 +473,31 @@ body {
 
 .modal-content {
     background-color: var(--bg-card);
-    border-radius: 16px;
-    padding: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.75rem;
     width: 90%;
-    max-width: 500px;
+    max-width: 400px;
     position: relative;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    animation: modalAppear 0.3s ease-out;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    animation: modalAppear 0.25s ease-out;
 }
 
 @keyframes modalAppear {
-    from { opacity: 0; transform: translateY(-20px); }
+    from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 .close-modal {
     position: absolute;
-    right: 1.5rem;
-    top: 1rem;
-    font-size: 1.5rem;
+    right: 1rem;
+    top: 0.75rem;
+    font-size: 1.25rem;
     cursor: pointer;
     color: var(--text-secondary);
     transition: color 0.2s;
+    background: none;
+    border: none;
 }
 
 .close-modal:hover {
@@ -490,26 +506,26 @@ body {
 
 /* Formulario */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
 .form-group input,
 .form-group textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.65rem 0.85rem;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-size: 1rem;
+    font-size: 0.85rem;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -517,34 +533,50 @@ body {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70px;
 }
 
 /* Input Color */
 input[type="color"] {
-    height: 50px;
+    height: 38px;
     padding: 0.25rem;
     cursor: pointer;
     border: none;
     background: none;
+    border-radius: 4px;
 }
 
 .btn-submit {
     width: 100%;
-    padding: 1rem;
-    background-color: var(--accent-color);
-    color: white;
+    padding: 0.75rem;
+    background: var(--gradient-accent);
+    color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 700;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 12px var(--accent-glow);
 }
 
 .btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.btn-toggle-auth {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
 }
 
 /* ---- 8. Temporizador Modal ---- */
@@ -556,10 +588,10 @@ input[type="color"] {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.85);
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
 }
 
 .timer-overlay.active {
@@ -568,40 +600,48 @@ input[type="color"] {
 
 .timer-modal {
     background-color: var(--timer-bg);
-    border-radius: 24px;
-    padding: 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
     text-align: center;
     position: relative;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    animation: timerAppear 0.4s ease-out;
+    max-width: 340px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    animation: timerAppear 0.3s ease-out;
 }
 
 @keyframes timerAppear {
-    from { opacity: 0; transform: scale(0.8); }
+    from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
 }
 
+.timer-modal h2 {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
 .timer-display {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 700;
-    font-family: 'Courier New', monospace;
-    margin: 1.5rem 0;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    margin: 1.25rem 0;
     color: var(--text-primary);
     letter-spacing: 2px;
     line-height: 1;
 }
 
 .timer-status {
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 2rem;
-    padding: 0.5rem 1.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    padding: 0.4rem 1rem;
     border-radius: 20px;
-    background-color: rgba(0, 176, 255, 0.1);
+    background: var(--accent-glow);
     color: var(--accent-color);
     display: inline-block;
 }
@@ -609,36 +649,35 @@ input[type="color"] {
 .timer-controls {
     display: flex;
     justify-content: center;
-    gap: 1rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
 }
 
 .btn-control {
-    padding: 0.75rem 1.5rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--bg-card);
+    padding: 0.6rem 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: transparent;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-control:hover {
-    background-color: var(--accent-color);
-    color: white;
+    background: var(--accent-color);
+    color: #fff;
     border-color: var(--accent-color);
-    transform: translateY(-2px);
 }
 
 .close-timer {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     cursor: pointer;
     color: var(--text-secondary);
     transition: color 0.2s;
@@ -648,14 +687,12 @@ input[type="color"] {
     color: var(--text-primary);
 }
 
-/* ---- 8. Mejoras Visuales ---- */
-
-/* Timer Circular Animado */
+/* Timer Circular */
 .timer-progress-circle {
     position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 1rem auto;
+    width: 180px;
+    height: 180px;
+    margin: 0.5rem auto;
 }
 
 .timer-progress-circle .progress-ring {
@@ -665,31 +702,26 @@ input[type="color"] {
 }
 
 .timer-progress-circle .progress-ring__bg {
-    stroke: rgba(0, 0, 0, 0.05);
+    stroke: rgba(255, 255, 255, 0.05);
 }
 
 .timer-progress-circle .progress-ring__circle {
     transition: stroke-dashoffset 0.3s ease;
-    filter: drop-shadow(0 0 8px rgba(0, 176, 255, 0.5));
+    filter: drop-shadow(0 0 6px rgba(0, 176, 255, 0.5));
 }
 
-body.dark-theme .timer-progress-circle .progress-ring__bg {
-    stroke: rgba(255, 255, 255, 0.05);
-}
-
-/* Sidebar - Historial Semanal */
+/* ---- 9. Historial Semanal ---- */
 .history-container {
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1rem;
-    margin-top: 1rem;
+    border-radius: 8px;
+    padding: 0.75rem;
 }
 
 .history-container h3 {
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     color: var(--text-primary);
 }
 
@@ -697,10 +729,9 @@ body.dark-theme .timer-progress-circle .progress-ring__bg {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    height: 100px;
-    gap: 0.5rem;
-    padding-bottom: 2rem;
-    margin-bottom: 0.5rem;
+    height: 80px;
+    gap: 0.35rem;
+    padding-bottom: 1.5rem;
 }
 
 .history-chart .history-bar {
@@ -712,70 +743,53 @@ body.dark-theme .timer-progress-circle .progress-ring__bg {
     height: 100%;
     position: relative;
     cursor: pointer;
-    transition: transform 0.2s ease;
 }
 
 .history-chart .history-bar:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
 }
 
 .history-chart .bar {
     width: 100%;
-    min-height: 4px;
-    background-color: var(--accent-color);
-    border-radius: 4px 4px 0 0;
-    transition: height 0.5s ease;
-    position: relative;
+    min-height: 3px;
+    background: var(--gradient-accent);
+    border-radius: 3px 3px 0 0;
+    transition: height 0.4s ease;
 }
 
 .history-chart span {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: var(--text-secondary);
-    margin-top: 0.25rem;
     position: absolute;
-    bottom: -1.75rem;
+    bottom: -1.4rem;
     white-space: nowrap;
 }
 
 /* Botón Exportar */
 .btn-export {
     width: 100%;
-    padding: 0.75rem 1rem;
-    margin-top: 1rem;
-    background-color: var(--bg-card);
+    padding: 0.65rem 1rem;
+    background-color: transparent;
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    font-weight: 600;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .btn-export:hover {
-    background-color: var(--accent-color);
-    color: white;
+    background: var(--accent-glow);
+    color: var(--accent-color);
     border-color: var(--accent-color);
-    transform: translateY(-2px);
 }
 
-/* Drag & Drop */
-.task-bubble.draggable {
-    cursor: grab;
-}
-
-.task-bubble.dragging {
-    opacity: 0.7;
-    cursor: grabbing;
-    z-index: 100;
-    box-shadow: 0 0 20px rgba(0, 176, 255, 0.6);
-}
-
-/* ---- 9. Responsive (Móviles) ---- */
+/* ---- 10. Responsive (Móviles) ---- */
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
@@ -785,17 +799,17 @@ body.dark-theme .timer-progress-circle .progress-ring__bg {
     .sidebar {
         width: 100%;
         height: auto;
-        max-height: 40vh;
+        max-height: 35vh;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
     }
 
     .canvas-area {
-        min-height: 50vh;
+        min-height: 45vh;
     }
 
     .timer-display {
-        font-size: 3rem;
+        font-size: 2.75rem;
     }
 
     .timer-controls {
@@ -803,7 +817,13 @@ body.dark-theme .timer-progress-circle .progress-ring__bg {
     }
 
     .btn-control {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.75rem;
+    }
+
+    .day-bubble {
+        width: 100px;
+        height: 100px;
+        font-size: 0.7rem;
     }
 }

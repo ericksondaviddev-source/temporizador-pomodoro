@@ -262,17 +262,20 @@ function renderBubbles() {
     const svg = document.createElementNS(svgNS, 'svg');
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
+    const DAY_SIZE = 120;
+    const dayCx = cx, dayCy = cy;
     // Burbuja del día
     const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
     const stats = getHistoryData().pop();
     const dayBubble = document.createElement('div'); dayBubble.className = 'day-bubble';
-    dayBubble.style.left = `${cx - 60}px`; dayBubble.style.top = `${cy - 60}px`;
+    dayBubble.style.left = `${cx}px`; dayBubble.style.top = `${cy}px`;
     dayBubble.innerHTML = `<div style="font-size:1.1rem">${today}</div><div style="font-size:.75rem;opacity:.9">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
-    // Burbujas de tareas
+    // Burbujas de tareas (20% más grandes)
+    const SIZE_INCREMENT = 1.2;
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
-        const size = 96 + Math.min(mins * 2, 120);
+        const size = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
         const bubble = document.createElement('div');
         bubble.className = 'task-bubble';
         bubble.style.width = `${size}px`; bubble.style.height = `${size}px`; bubble.style.backgroundColor = task.color;
@@ -285,10 +288,12 @@ function renderBubbles() {
         // Drag & drop
         bubble.addEventListener('dragstart', e => { appState.draggedBubble = task; bubble.style.opacity = '0.5'; });
         bubble.addEventListener('dragend', e => { bubble.style.opacity = '1'; appState.draggedBubble = null; });
-        // Linea SVG
+        // Linea SVG - conecta centro del día con centro de la burbuja
+        const taskCx = pos.x + size / 2;
+        const taskCy = pos.y + size / 2;
         const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', cx); line.setAttribute('y1', cy);
-        line.setAttribute('x2', pos.x + size / 2); line.setAttribute('y2', pos.y + size / 2);
+        line.setAttribute('x1', dayCx); line.setAttribute('y1', dayCy);
+        line.setAttribute('x2', taskCx); line.setAttribute('y2', taskCy);
         svg.appendChild(line);
         // Click
         bubble.addEventListener('click', (e) => { e.stopPropagation(); selectTask(task.id); });
@@ -300,9 +305,10 @@ function renderBubbles() {
         e.preventDefault();
         if (appState.draggedBubble && appState.draggedBubble.position) {
             const rect = elements.canvasArea.getBoundingClientRect();
+            const size = Math.round((96 + Math.min(Math.floor((appState.draggedBubble.totalFocusTime || 0) / 60) * 2, 120)) * SIZE_INCREMENT);
             appState.draggedBubble.position = {
-                x: e.clientX - rect.left - 48,
-                y: e.clientY - rect.top - 48
+                x: e.clientX - rect.left - size / 2,
+                y: e.clientY - rect.top - size / 2
             };
             renderBubbles();
         }
