@@ -423,10 +423,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Presets
-    elements.btnSavePreset.addEventListener('click', () => {
-        if (!appState.tasks.length) { alert('Agrega tareas primero'); return; }
-        elements.presetModal.classList.add('active');
-    });
+    if (elements.btnSavePreset) {
+        elements.btnSavePreset.addEventListener('click', () => {
+            if (!appState.tasks.length) { alert('Agrega tareas primero'); return; }
+            elements.presetModal.classList.add('active');
+        });
+    }
     elements.closePresetModal.addEventListener('click', () => { elements.presetModal.classList.remove('active'); elements.presetForm.reset(); });
     elements.presetForm.addEventListener('submit', (e) => {
         e.preventDefault();
