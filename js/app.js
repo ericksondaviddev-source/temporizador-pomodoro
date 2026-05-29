@@ -207,6 +207,19 @@ async function deleteTaskFromFirestore(taskId) {
 }
 
 // ---- 7. SIDEBAR SECTIONS ----
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const icon = document.getElementById('sidebarToggleIcon');
+    if (sidebar && toggle) {
+        sidebar.classList.toggle('collapsed');
+        toggle.classList.toggle('active');
+        if (icon) {
+            icon.textContent = sidebar.classList.contains('collapsed') ? '✕' : '☰';
+        }
+    }
+    playClick();
+}
 function toggleSidebarSection(section) {
     const content = document.getElementById(section + 'SectionContent');
     const toggle = document.getElementById(section + 'ToggleBtn');
@@ -612,6 +625,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.btnAddTask.addEventListener('click', () => elements.taskModal.classList.add('active'));
+
+    const logoutBtn = document.getElementById('btnLogout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => { playClick(); await logoutUser(); });
+    }
+
     elements.closeModal.addEventListener('click', () => { elements.taskModal.classList.remove('active'); elements.taskForm.reset(); });
     elements.closeTimer.addEventListener('click', () => { elements.timerOverlay.classList.remove('active'); pauseTimer(); });
     elements.taskForm.addEventListener('submit', (e) => {
@@ -620,6 +639,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.taskModal.classList.remove('active'); elements.taskForm.reset();
     });
     elements.themeSwitch.addEventListener('click', toggleTheme);
+
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
 
     elements.timerControls.start.addEventListener('click', () => { playClick(); startTimer(); });
     elements.timerControls.pause.addEventListener('click', () => { playClick(); pauseTimer(); });
