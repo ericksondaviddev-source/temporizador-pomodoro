@@ -262,7 +262,7 @@ function renderBubbles() {
     const svg = document.createElementNS(svgNS, 'svg');
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
-    const DAY_SIZE = 120;
+    const DAY_SIZE = 130;
     const dayCx = cx, dayCy = cy;
     // Burbuja del día
     const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
@@ -271,8 +271,8 @@ function renderBubbles() {
     dayBubble.style.left = `${cx}px`; dayBubble.style.top = `${cy}px`;
     dayBubble.innerHTML = `<div style="font-size:1.1rem">${today}</div><div style="font-size:.75rem;opacity:.9">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
-    // Burbujas de tareas (20% más grandes)
-    const SIZE_INCREMENT = 1.2;
+    // Burbujas de tareas (30% más grandes: 20% + 10% adicional)
+    const SIZE_INCREMENT = 1.32;
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
         const size = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
@@ -288,13 +288,31 @@ function renderBubbles() {
         // Drag & drop
         bubble.addEventListener('dragstart', e => { appState.draggedBubble = task; bubble.style.opacity = '0.5'; });
         bubble.addEventListener('dragend', e => { bubble.style.opacity = '1'; appState.draggedBubble = null; });
-        // Linea SVG - conecta centro del día con centro de la burbuja
+        // Línea SVG curvada bezier - conecta borde del día con borde de la burbuja
         const taskCx = pos.x + size / 2;
         const taskCy = pos.y + size / 2;
-        const line = document.createElementNS(svgNS, 'line');
-        line.setAttribute('x1', dayCx); line.setAttribute('y1', dayCy);
-        line.setAttribute('x2', taskCx); line.setAttribute('y2', taskCy);
-        svg.appendChild(line);
+        const dx = taskCx - dayCx;
+        const dy = taskCy - dayCy;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        // Punto en el borde de la burbuja del día (radio = DAY_SIZE/2)
+        const dayEdgeX = dayCx + (dx / dist) * (DAY_SIZE / 2);
+        const dayEdgeY = dayCy + (dy / dist) * (DAY_SIZE / 2);
+        // Punto en el borde de la burbuja de tarea
+        const taskEdgeX = taskCx - (dx / dist) * (size / 2);
+        const taskEdgeY = taskCy - (dy / dist) * (size / 2);
+        // Punto de control para curva bezier orgánica (perpendicular al vector)
+        const midX = (dayEdgeX + taskEdgeX) / 2;
+        const midY = (dayEdgeY + taskEdgeY) / 2;
+        const perpX = -dy / dist;
+        const perpY = dx / dist;
+        const curvature = Math.min(dist * 0.15, 40);
+        const ctrlX = midX + perpX * curvature * (Math.random() > 0.5 ? 1 : -1);
+        const ctrlY = midY + perpY * curvature * (Math.random() > 0.5 ? 1 : -1);
+        // Crear path curvado
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', `M ${dayEdgeX} ${dayEdgeY} Q ${ctrlX} ${ctrlY} ${taskEdgeX} ${taskEdgeY}`);
+        path.setAttribute('stroke', task.color);
+        svg.appendChild(path);
         // Click
         bubble.addEventListener('click', (e) => { e.stopPropagation(); selectTask(task.id); });
         elements.canvasArea.appendChild(bubble);
@@ -415,17 +433,18 @@ async function addTask(name, color, notes) {
 
 // Tema
 function toggleTheme() {
-    const isDark = document.body.classList.toggle('dark-theme');
-    localStorage.setItem('mindfocus-theme', isDark ? 'dark' : 'light');
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('mindfocus-theme', isLight ? 'light' : 'dark');
     const icon = elements.themeSwitch.querySelector('.theme-icon');
-    icon.textContent = isDark ? '☀️' : '🌙';
+    icon.textContent = isLight ? '🌙' : '☀️';
 }
 
 // ---- 11. INIT ----
 document.addEventListener('DOMContentLoaded', () => {
     console.log('MindFocus App Iniciada 🚀');
     const saved = localStorage.getItem('mindfocus-theme');
-    if (saved === 'dark') { document.body.classList.add('dark-theme'); elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️'; }
+    if (saved === 'light') { document.body.classList.add('light-theme'); elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️'; }
+    else { elements.themeSwitch.querySelector('.theme-icon').textContent = '🌙'; }
 
     onAuthStateChanged(auth, (user) => { updateAuthUI(user); if (user) loadTasksFromFirestore(); });
 
