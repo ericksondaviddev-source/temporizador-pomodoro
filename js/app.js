@@ -8,6 +8,54 @@ import {
     collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where
 } from './firebase-config.js';
 
+// ---- 5. AUTENTICACIÓN ----
+let isRegistering = false;
+
+async function registerWithEmail(email, password, name) {
+    try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await result.user.updateProfile({ displayName: name });
+        return result.user;
+    } catch (e) {
+        console.error('Error registro:', e);
+        alert('Error al registrar: ' + (e.message || 'Verifica tus datos'));
+        throw e;
+    }
+}
+
+async function loginWithEmail(email, password) {
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        return result.user;
+    } catch (e) {
+        console.error('Error login:', e);
+        alert('Error al iniciar sesión: ' + (e.message || 'Verifica tu email y contraseña'));
+        throw e;
+    }
+}
+
+async function logoutUser() {
+    try {
+        await signOut(auth);
+    } catch (e) {
+        console.error('Error logout:', e);
+    }
+}
+
+function toggleAuthMode() {
+    isRegistering = !isRegistering;
+    const title = document.getElementById('authTitle');
+    const submit = document.getElementById('authSubmit');
+    const toggleText = document.getElementById('authToggleText');
+    const toggleBtn = document.getElementById('authToggleBtn');
+    const nameGroup = document.getElementById('nameGroup');
+    if (title) title.textContent = isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión';
+    if (submit) submit.textContent = isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión';
+    if (toggleText) toggleText.textContent = isRegistering ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?';
+    if (toggleBtn) toggleBtn.textContent = isRegistering ? 'Iniciar Sesión' : 'Regístrate';
+    if (nameGroup) nameGroup.style.display = isRegistering ? 'block' : 'none';
+}
+
 // ---- 1. SEGURIDAD ----
 function escapeHtml(text) {
     const div = document.createElement('div');
