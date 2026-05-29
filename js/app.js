@@ -99,7 +99,8 @@ function generateId() { return Date.now().toString(36) + Math.random().toString(
 function getRandomPosition(sz) {
     const w = elements.canvasArea.clientWidth;
     const h = elements.canvasArea.clientHeight;
-    return { x: Math.random() * (w - sz - 40) + 20, y: Math.random() * (h - sz - 40) + 20 };
+    const minY = 220;
+    return { x: Math.random() * (w - sz - 40) + 20, y: minY + Math.random() * (h - sz - minY - 40) };
 }
 
 // ---- 4. SONIDOS ----
@@ -171,6 +172,8 @@ function updateAuthUI(user) {
         elements.profileInputName.value = user.displayName || '';
         const savedColor = localStorage.getItem('mindfocus-accent-color');
         if (savedColor) elements.profileInputColor.value = savedColor;
+        const savedTheme = localStorage.getItem('mindfocus-theme') || 'dark';
+        if (elements.profileInputTheme) elements.profileInputTheme.value = savedTheme;
         elements.authModal.classList.remove('active');
     } else {
         appState.currentUser = null;
@@ -218,30 +221,49 @@ async function deleteTaskFromFirestore(taskId) {
 }
 
 // ---- 7. PERFIL ----
+function toggleProfileSection() {
+    const content = document.getElementById('profileContent');
+    const toggle = document.getElementById('profileToggle');
+    if (content && toggle) {
+        content.classList.toggle('collapsed');
+        toggle.classList.toggle('collapsed');
+    }
+    playClick();
+}
 async function saveProfile() {
-    const newName = elements.profileInputName.value.trim().slice(0, 60);
-    const newColor = elements.profileInputColor.value;
-    const newTheme = elements.profileInputTheme.value;
-    if (appState.currentUser) {
-        try {
-            if (newName) await appState.currentUser.updateProfile({ displayName: newName });
-            localStorage.setItem('mindfocus-accent-color', newColor);
-            if (newTheme === 'light') {
-                document.body.classList.add('light-theme');
-                localStorage.setItem('mindfocus-theme', 'light');
-                elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️';
-            } else {
-                document.body.classList.remove('light-theme');
-                localStorage.setItem('mindfocus-theme', 'dark');
-                elements.themeSwitch.querySelector('.theme-icon').textContent = '🌙';
-            }
-            elements.profileName.textContent = newName || 'Usuario';
-            playClick();
-            alert('Perfil actualizado');
-        } catch (e) { 
-            console.error('Error guardando perfil:', e);
-            alert('Error al guardar perfil');
+    if (!appState.currentUser) {
+        alert('Debes iniciar sesión para guardar el perfil');
+        return;
+    }
+    const nameInput = document.getElementById('profileInputName');
+    const colorInput = document.getElementById('profileInputColor');
+    const themeSelect = document.getElementById('profileInputTheme');
+    if (!nameInput || !colorInput || !themeSelect) {
+        console.error('Profile elements not found');
+        return;
+    }
+    const newName = nameInput.value.trim().slice(0, 60);
+    const newColor = colorInput.value;
+    const newTheme = themeSelect.value;
+    try {
+        if (newName) await appState.currentUser.updateProfile({ displayName: newName });
+        localStorage.setItem('mindfocus-accent-color', newColor);
+        if (newTheme === 'light') {
+            document.body.classList.add('light-theme');
+            localStorage.setItem('mindfocus-theme', 'light');
+            elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️';
+        } else {
+            document.body.classList.remove('light-theme');
+            localStorage.setItem('mindfocus-theme', 'dark');
+            elements.themeSwitch.querySelector('.theme-icon').textContent = '🌙';
         }
+        const profileNameEl = document.getElementById('profileName');
+        if (profileNameEl) profileNameEl.textContent = newName || 'Usuario';
+        playClick();
+        alert('Perfil actualizado');
+    } catch (e) {
+        console.error('Error guardando perfil:', e);
+        alert('Error al guardar perfil');
     }
 }
 
@@ -430,12 +452,13 @@ function renderBubbles() {
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
     const DAY_SIZE = 130;
-    const dayCx = cx, dayCy = cy;
+    const dayCx = cx, dayCy = 80 + DAY_SIZE / 2;
     const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
     const stats = getHistoryData().pop();
     const dayBubble = document.createElement('div'); dayBubble.className = 'day-bubble';
-    dayBubble.style.left = `${cx}px`; dayBubble.style.top = `${cy}px`;
-    dayBubble.innerHTML = `<div style="font-size:1.1rem">${today}</div><div style="font-size:.75rem;opacity:.9">${stats.sessions} ses · ${stats.minutes} min</div>`;
+    dayBubble.style.left = `${cx}px`; dayBubble.style.top = `80px`;
+    const fullDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    dayBubble.innerHTML = `<div style="font-size:0.9rem;font-weight:700;text-transform:capitalize">${fullDate}</div><div style="font-size:.7rem;opacity:.9;margin-top:4px">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
     const SIZE_INCREMENT = 1.06;
     appState.tasks.forEach(task => {
@@ -677,3 +700,4 @@ window.loadPreset = loadPreset;
 window.deletePreset = deletePreset;
 window.toggleTaskBar = toggleTaskBar;
 window.deleteTask = deleteTask;
+window.toggleProfileSection = toggleProfileSection;

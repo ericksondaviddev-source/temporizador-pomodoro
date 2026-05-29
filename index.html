@@ -36,32 +36,38 @@
         <!-- Panel lateral izquierdo: Lista de tareas -->
         <aside class="sidebar">
             <!-- Perfil Section -->
-            <div class="profile-container hidden" id="profileContainer">
-                <div class="profile-header">
-                    <div class="profile-avatar" id="profileAvatar">👤</div>
-                    <div class="profile-info">
-                        <div class="profile-name" id="profileName">Usuario</div>
-                        <div class="profile-email" id="profileEmail">email@example.com</div>
-                    </div>
+            <div class="sidebar-section profile-container" id="profileContainer">
+                <div class="sidebar-section-header" onclick="toggleProfileSection()">
+                    <span class="sidebar-section-title">Mi Perfil</span>
+                    <button class="sidebar-section-toggle" id="profileToggle">▼</button>
                 </div>
-                <div class="profile-customizations">
-                    <div class="profile-custom-item">
-                        <span class="profile-custom-label">Nombre</span>
-                        <input type="text" id="profileInputName" class="profile-input" placeholder="Tu nombre">
+                <div class="profile-content" id="profileContent">
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profileAvatar">👤</div>
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">Usuario</div>
+                            <div class="profile-email" id="profileEmail">email@example.com</div>
+                        </div>
                     </div>
-                    <div class="profile-custom-item">
-                        <span class="profile-custom-label">Color favorito</span>
-                        <input type="color" id="profileInputColor" class="profile-color-input" value="#00B0FF">
+                    <div class="profile-customizations">
+                        <div class="profile-custom-item">
+                            <span class="profile-custom-label">Nombre</span>
+                            <input type="text" id="profileInputName" class="profile-input" placeholder="Tu nombre">
+                        </div>
+                        <div class="profile-custom-item">
+                            <span class="profile-custom-label">Color favorito</span>
+                            <input type="color" id="profileInputColor" class="profile-color-input" value="#00B0FF">
+                        </div>
+                        <div class="profile-custom-item">
+                            <span class="profile-custom-label">Modo por defecto</span>
+                            <select id="profileInputTheme" class="profile-select">
+                                <option value="dark">Oscuro</option>
+                                <option value="light">Claro</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="profile-custom-item">
-                        <span class="profile-custom-label">Modo por defecto</span>
-                        <select id="profileInputTheme" class="profile-select">
-                            <option value="dark">Oscuro</option>
-                            <option value="light">Claro</option>
-                        </select>
-                    </div>
+                    <button class="btn-save-profile" id="btnSaveProfile">Guardar Cambios</button>
                 </div>
-                <button class="btn-save-profile" id="btnSaveProfile">Guardar Cambios</button>
             </div>
 
             <div class="sidebar-header">
