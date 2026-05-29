@@ -652,7 +652,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     elements.btnLogout.addEventListener('click', async () => { playClick(); await logoutUser(); });
-    elements.btnSaveProfile.addEventListener('click', () => { playClick(); saveProfile(); });
+    const saveProfileBtn = document.getElementById('btnSaveProfile');
+    if (saveProfileBtn) {
+        saveProfileBtn.addEventListener('click', () => { playClick(); saveProfile(); });
+    }
 
     elements.btnAddTask.addEventListener('click', () => elements.taskModal.classList.add('active'));
     elements.closeModal.addEventListener('click', () => { elements.taskModal.classList.remove('active'); elements.taskForm.reset(); });
