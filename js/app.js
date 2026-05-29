@@ -8,7 +8,17 @@ import {
     collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where
 } from './firebase-config.js';
 
-// ---- 1. ESTADO GLOBAL ----
+// ---- 1. SEGURIDAD ----
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+function sanitizePresetName(name) {
+    return escapeHtml(name).slice(0, 50);
+}
+
+// ---- 2. ESTADO GLOBAL ----
 const appState = {
     tasks: [],
     currentTask: null,
@@ -50,8 +60,15 @@ const elements = {
     btnLogin: document.getElementById('btnLogin'),
     btnLogout: document.getElementById('btnLogout'),
     userInfo: document.getElementById('userInfo'),
-    userAvatar: document.getElementById('userAvatar'),
-    userName: document.getElementById('userName'),
+    btnProfile: document.getElementById('btnProfile'),
+    profileContainer: document.getElementById('profileContainer'),
+    profileAvatar: document.getElementById('profileAvatar'),
+    profileName: document.getElementById('profileName'),
+    profileEmail: document.getElementById('profileEmail'),
+    profileInputName: document.getElementById('profileInputName'),
+    profileInputColor: document.getElementById('profileInputColor'),
+    profileInputTheme: document.getElementById('profileInputTheme'),
+    btnSaveProfile: document.getElementById('btnSaveProfile'),
     authModal: document.getElementById('authModal'),
     closeAuthModal: document.getElementById('closeAuthModal'),
     authForm: document.getElementById('authForm'),
@@ -120,9 +137,15 @@ function playGong() {
 // ---- 5. AUTENTICACIÓN ----
 let isRegistering = false;
 async function registerWithEmail(email, password, name) {
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-    await result.user.updateProfile({ displayName: name }).catch(() => null);
-    return result.user;
+    try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await result.user.updateProfile({ displayName: name });
+        return result.user;
+    } catch (e) {
+        console.error('Error registro:', e);
+        alert('Error al registrar: ' + (e.message || 'Verifica tus datos'));
+        throw e;
+    }
 }
 async function loginWithEmail(email, password) {
     const result = await signInWithEmailAndPassword(auth, email, password);
@@ -142,15 +165,21 @@ function updateAuthUI(user) {
         appState.currentUser = user;
         elements.btnLogin.classList.add('hidden');
         elements.userInfo.classList.remove('hidden');
-        elements.userAvatar.src = user.photoURL || 'https://via.placeholder.com/32';
-        elements.userName.textContent = user.displayName || user.email;
+        elements.profileContainer.classList.remove('hidden');
+        elements.profileName.textContent = user.displayName || 'Usuario';
+        elements.profileEmail.textContent = user.email;
+        elements.profileInputName.value = user.displayName || '';
+        const savedColor = localStorage.getItem('mindfocus-accent-color');
+        if (savedColor) elements.profileInputColor.value = savedColor;
         elements.authModal.classList.remove('active');
     } else {
         appState.currentUser = null;
         elements.btnLogin.classList.remove('hidden');
         elements.userInfo.classList.add('hidden');
-        elements.userAvatar.src = '';
-        elements.userName.textContent = '';
+        elements.profileContainer.classList.add('hidden');
+        elements.profileAvatar.textContent = '👤';
+        elements.profileName.textContent = '';
+        elements.profileEmail.textContent = '';
         appState.tasks = []; renderTasks(); renderBubbles(); renderHistory();
     }
 }
@@ -188,7 +217,35 @@ async function deleteTaskFromFirestore(taskId) {
     } catch (e) { console.error('Delete task error', e); }
 }
 
-// ---- 7. PRESETS (SESIONES GUARDADAS) ----
+// ---- 7. PERFIL ----
+async function saveProfile() {
+    const newName = elements.profileInputName.value.trim().slice(0, 60);
+    const newColor = elements.profileInputColor.value;
+    const newTheme = elements.profileInputTheme.value;
+    if (appState.currentUser) {
+        try {
+            if (newName) await appState.currentUser.updateProfile({ displayName: newName });
+            localStorage.setItem('mindfocus-accent-color', newColor);
+            if (newTheme === 'light') {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('mindfocus-theme', 'light');
+                elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('mindfocus-theme', 'dark');
+                elements.themeSwitch.querySelector('.theme-icon').textContent = '🌙';
+            }
+            elements.profileName.textContent = newName || 'Usuario';
+            playClick();
+            alert('Perfil actualizado');
+        } catch (e) { 
+            console.error('Error guardando perfil:', e);
+            alert('Error al guardar perfil');
+        }
+    }
+}
+
+// ---- 8. PRESETS (SESIONES GUARDADAS) ----
 function loadPresets() {
     const saved = localStorage.getItem('mindfocus-presets');
     appState.presets = saved ? JSON.parse(saved) : [];
@@ -198,13 +255,15 @@ function savePresets() {
     localStorage.setItem('mindfocus-presets', JSON.stringify(appState.presets));
 }
 function savePreset(name) {
+    const safeName = sanitizePresetName(name);
+    if (!safeName) return;
     const preset = {
         id: generateId(),
-        name: name,
+        name: safeName,
         tasks: appState.tasks.map(t => ({
-            name: t.name,
+            name: escapeHtml(t.name).slice(0, 60),
             color: t.color,
-            notes: t.notes
+            notes: escapeHtml(t.notes || '').slice(0, 500)
         })),
         createdAt: new Date().toISOString()
     };
@@ -244,14 +303,14 @@ function renderPresets() {
     }
     elements.presetsList.innerHTML = appState.presets.map(p => `
         <div class="preset-item" onclick="loadPreset('${p.id}')">
-            <span class="preset-item-name">${p.name}</span>
+            <span class="preset-item-name">${sanitizePresetName(p.name)}</span>
             <span class="preset-item-count">${p.tasks.length} tareas</span>
             <button class="preset-item-delete" onclick="deletePreset('${p.id}', event)">✕</button>
         </div>
     `).join('');
 }
 
-// ---- 8. HISTORIAL Y EXPORT ----
+// ---- 9. HISTORIAL Y EXPORT ----
 function getHistoryData() {
     const raw = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
     const today = new Date();
@@ -306,7 +365,7 @@ function exportData(format) {
     }
 }
 
-// ---- 9. RENDERIZADO ----
+// ---- 10. RENDERIZADO ----
 function renderTasks() {
     elements.taskList.innerHTML = '';
     if (!appState.tasks.length) {
@@ -320,7 +379,7 @@ function renderTasks() {
             <div class="task-bar-header" onclick="toggleTaskBar(this)">
                 <div class="task-bar-color" style="background-color:${task.color}"></div>
                 <div class="task-bar-info">
-                    <div class="task-bar-name">${task.name}</div>
+                    <div class="task-bar-name">${escapeHtml(task.name)}</div>
                     <div class="task-bar-meta">
                         <span>${mins} min</span>
                         <span>·</span>
@@ -333,7 +392,7 @@ function renderTasks() {
                 <button class="task-bar-expand">▼</button>
             </div>
             <div class="task-bar-details">
-                <p class="task-bar-notes">${task.notes || 'Sin notas'}</p>
+                <p class="task-bar-notes">${escapeHtml(task.notes || 'Sin notas')}</p>
                 <div class="task-bar-stats">
                     <span>⏱️ ${mins} minutos</span>
                     <span>✓ ${task.sessionsCompleted || 0} sesiones</span>
@@ -378,7 +437,7 @@ function renderBubbles() {
     dayBubble.style.left = `${cx}px`; dayBubble.style.top = `${cy}px`;
     dayBubble.innerHTML = `<div style="font-size:1.1rem">${today}</div><div style="font-size:.75rem;opacity:.9">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
-    const SIZE_INCREMENT = 1.32;
+    const SIZE_INCREMENT = 1.06;
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
         const size = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
@@ -456,7 +515,7 @@ function updateTimerDisplay() {
     updateProgressCircle();
 }
 
-// ---- 10. TIMER ----
+// ---- 11. TIMER ----
 function startTimer() {
     if (appState.isTimerRunning) return;
     appState.isTimerRunning = true;
@@ -508,7 +567,7 @@ async function timerFinished() {
     elements.timerControls.start.disabled = false;
 }
 
-// ---- 11. EVENT LISTENERS ----
+// ---- 12. EVENT LISTENERS ----
 function selectTask(taskId) {
     const task = appState.tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -522,9 +581,16 @@ function selectTask(taskId) {
     elements.timerOverlay.classList.add('active');
 }
 async function addTask(name, color, notes) {
+    name = name.trim().slice(0, 60);
+    notes = notes.trim().slice(0, 500);
+    if (!name) return;
     const nt = { id: generateId(), name, color, notes, totalFocusTime: 0, sessionsCompleted: 0, position: null };
     appState.tasks.push(nt); playClick();
-    if (appState.currentUser) await saveTaskToFirestore(nt);
+    if (appState.currentUser) {
+        try {
+            await saveTaskToFirestore(nt);
+        } catch (e) { console.error('Error guardando tarea:', e); }
+    }
     renderTasks(); renderBubbles(); updateStats();
 }
 
@@ -535,7 +601,7 @@ function toggleTheme() {
     icon.textContent = isLight ? '🌙' : '☀️';
 }
 
-// ---- 12. INIT ----
+// ---- 13. INIT ----
 document.addEventListener('DOMContentLoaded', () => {
     console.log('MindFocus App Iniciada 🚀');
     const saved = localStorage.getItem('mindfocus-theme');
@@ -557,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     elements.btnLogout.addEventListener('click', async () => { playClick(); await logoutUser(); });
+    elements.btnSaveProfile.addEventListener('click', () => { playClick(); saveProfile(); });
 
     elements.btnAddTask.addEventListener('click', () => elements.taskModal.classList.add('active'));
     elements.closeModal.addEventListener('click', () => { elements.taskModal.classList.remove('active'); elements.taskForm.reset(); });
