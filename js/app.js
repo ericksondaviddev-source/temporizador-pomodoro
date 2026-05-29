@@ -1,5 +1,5 @@
 /* ==========================================
-   MINDFOCUS - Lógica principal con Firebase + Mejoras
+   MINDFOCUS - Lógica principal con Firebase
    ========================================== */
 
 import {
@@ -19,7 +19,8 @@ const appState = {
     isBreak: false,
     theme: 'light',
     currentUser: null,
-    draggedBubble: null
+    draggedBubble: null,
+    presets: []
 };
 
 // ---- 2. REFERENCIAS AL DOM ----
@@ -45,14 +46,12 @@ const elements = {
         pause: document.getElementById('btnPause'),
         reset: document.getElementById('btnReset')
     },
-    // Auth
     authSection: document.getElementById('authSection'),
     btnLogin: document.getElementById('btnLogin'),
     btnLogout: document.getElementById('btnLogout'),
     userInfo: document.getElementById('userInfo'),
     userAvatar: document.getElementById('userAvatar'),
     userName: document.getElementById('userName'),
-    // Auth modal
     authModal: document.getElementById('authModal'),
     closeAuthModal: document.getElementById('closeAuthModal'),
     authForm: document.getElementById('authForm'),
@@ -64,9 +63,13 @@ const elements = {
     authToggleBtn: document.getElementById('authToggleBtn'),
     authToggleText: document.getElementById('authToggleText'),
     nameGroup: document.getElementById('nameGroup'),
-    // Nuevos elementos
     historyChart: document.getElementById('historyChart'),
-    btnExport: document.getElementById('btnExport')
+    btnExport: document.getElementById('btnExport'),
+    presetsList: document.getElementById('presetsList'),
+    btnSavePreset: document.getElementById('btnSavePreset'),
+    presetModal: document.getElementById('presetModal'),
+    closePresetModal: document.getElementById('closePresetModal'),
+    presetForm: document.getElementById('presetForm')
 };
 
 // ---- 3. AUXILIARES ----
@@ -178,8 +181,77 @@ async function updateTaskInFirestore(taskId, updates) {
         await updateDoc(doc(db, 'users', appState.currentUser.uid, 'tasks', taskId), { ...updates, updatedAt: new Date().toISOString() });
     } catch (e) { console.error('Update task error', e); }
 }
+async function deleteTaskFromFirestore(taskId) {
+    if (!appState.currentUser) return;
+    try {
+        await deleteDoc(doc(db, 'users', appState.currentUser.uid, 'tasks', taskId));
+    } catch (e) { console.error('Delete task error', e); }
+}
 
-// ---- 7. HISTORIAL Y EXPORT ----
+// ---- 7. PRESETS (SESIONES GUARDADAS) ----
+function loadPresets() {
+    const saved = localStorage.getItem('mindfocus-presets');
+    appState.presets = saved ? JSON.parse(saved) : [];
+    renderPresets();
+}
+function savePresets() {
+    localStorage.setItem('mindfocus-presets', JSON.stringify(appState.presets));
+}
+function savePreset(name) {
+    const preset = {
+        id: generateId(),
+        name: name,
+        tasks: appState.tasks.map(t => ({
+            name: t.name,
+            color: t.color,
+            notes: t.notes
+        })),
+        createdAt: new Date().toISOString()
+    };
+    appState.presets.push(preset);
+    savePresets();
+    renderPresets();
+}
+function loadPreset(presetId) {
+    const preset = appState.presets.find(p => p.id === presetId);
+    if (!preset) return;
+    if (!confirm(`¿Cargar "${preset.name}"? Esto reemplazará las tareas actuales.`)) return;
+    appState.tasks = preset.tasks.map(t => ({
+        id: generateId(),
+        name: t.name,
+        color: t.color,
+        notes: t.notes,
+        totalFocusTime: 0,
+        sessionsCompleted: 0,
+        position: null
+    }));
+    renderTasks(); renderBubbles(); updateStats();
+    if (appState.currentUser) {
+        appState.tasks.forEach(async t => await saveTaskToFirestore(t));
+    }
+}
+function deletePreset(presetId, e) {
+    e.stopPropagation();
+    appState.presets = appState.presets.filter(p => p.id !== presetId);
+    savePresets();
+    renderPresets();
+}
+function renderPresets() {
+    if (!elements.presetsList) return;
+    if (!appState.presets.length) {
+        elements.presetsList.innerHTML = '<p class="no-presets">Sin sesiones guardadas</p>';
+        return;
+    }
+    elements.presetsList.innerHTML = appState.presets.map(p => `
+        <div class="preset-item" onclick="loadPreset('${p.id}')">
+            <span class="preset-item-name">${p.name}</span>
+            <span class="preset-item-count">${p.tasks.length} tareas</span>
+            <button class="preset-item-delete" onclick="deletePreset('${p.id}', event)">✕</button>
+        </div>
+    `).join('');
+}
+
+// ---- 8. HISTORIAL Y EXPORT ----
 function getHistoryData() {
     const raw = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
     const today = new Date();
@@ -213,7 +285,6 @@ function renderHistory() {
 function exportData(format) {
     if (!appState.currentUser) { alert('Inicia sesión para exportar datos'); return; }
     const history = getHistoryData();
-    const todayStats = history[history.length - 1];
     const totalSessions = appState.tasks.reduce((s, t) => s + (t.sessionsCompleted || 0), 0);
     const totalMinutes = Math.floor(appState.tasks.reduce((s, t) => s + (t.totalFocusTime || 0), 0) / 60);
     if (format === 'csv') {
@@ -235,7 +306,7 @@ function exportData(format) {
     }
 }
 
-// ---- 8. RENDERIZADO ----
+// ---- 9. RENDERIZADO ----
 function renderTasks() {
     elements.taskList.innerHTML = '';
     if (!appState.tasks.length) {
@@ -243,12 +314,50 @@ function renderTasks() {
         return;
     }
     appState.tasks.forEach(task => {
-        const card = document.createElement('div'); card.className = 'task-card'; card.style.borderLeftColor = task.color;
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
-        card.innerHTML = `<h4>${task.name}</h4><p>${task.notes || 'Sin notas'}</p><small style="color:${task.color};font-weight:600">${mins} min</small>`;
-        card.addEventListener('click', () => selectTask(task.id));
-        elements.taskList.appendChild(card);
+        const bar = document.createElement('div'); bar.className = 'task-bar'; bar.style.setProperty('--bar-color', task.color);
+        bar.innerHTML = `
+            <div class="task-bar-header" onclick="toggleTaskBar(this)">
+                <div class="task-bar-color" style="background-color:${task.color}"></div>
+                <div class="task-bar-info">
+                    <div class="task-bar-name">${task.name}</div>
+                    <div class="task-bar-meta">
+                        <span>${mins} min</span>
+                        <span>·</span>
+                        <span>${task.sessionsCompleted || 0} ses</span>
+                    </div>
+                </div>
+                <div class="task-bar-actions">
+                    <button class="task-bar-delete" onclick="deleteTask('${task.id}', event)">🗑️</button>
+                </div>
+                <button class="task-bar-expand">▼</button>
+            </div>
+            <div class="task-bar-details">
+                <p class="task-bar-notes">${task.notes || 'Sin notas'}</p>
+                <div class="task-bar-stats">
+                    <span>⏱️ ${mins} minutos</span>
+                    <span>✓ ${task.sessionsCompleted || 0} sesiones</span>
+                </div>
+            </div>
+        `;
+        bar.addEventListener('click', (e) => { if (!e.target.closest('.task-bar-delete') && !e.target.closest('.task-bar-expand')) selectTask(task.id); });
+        elements.taskList.appendChild(bar);
     });
+}
+function toggleTaskBar(header) {
+    const bar = header.closest('.task-bar');
+    const details = bar.querySelector('.task-bar-details');
+    const expand = bar.querySelector('.task-bar-expand');
+    details.classList.toggle('expanded');
+    expand.classList.toggle('expanded');
+}
+function deleteTask(taskId, e) {
+    e.stopPropagation();
+    if (!confirm('¿Eliminar esta tarea?')) return;
+    appState.tasks = appState.tasks.filter(t => t.id !== taskId);
+    if (appState.currentUser) deleteTaskFromFirestore(taskId);
+    playClick();
+    renderTasks(); renderBubbles(); updateStats();
 }
 function renderBubbles() {
     const old = elements.canvasArea.querySelectorAll('.task-bubble, .svg-overlay, .day-bubble');
@@ -257,21 +366,18 @@ function renderBubbles() {
     elements.canvasPlaceholder.style.display = 'none';
     const rect = elements.canvasArea.getBoundingClientRect();
     const cx = rect.width / 2, cy = rect.height / 2;
-    // SVG overlay
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
     const DAY_SIZE = 130;
     const dayCx = cx, dayCy = cy;
-    // Burbuja del día
     const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
     const stats = getHistoryData().pop();
     const dayBubble = document.createElement('div'); dayBubble.className = 'day-bubble';
     dayBubble.style.left = `${cx}px`; dayBubble.style.top = `${cy}px`;
     dayBubble.innerHTML = `<div style="font-size:1.1rem">${today}</div><div style="font-size:.75rem;opacity:.9">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
-    // Burbujas de tareas (30% más grandes: 20% + 10% adicional)
     const SIZE_INCREMENT = 1.32;
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
@@ -285,22 +391,17 @@ function renderBubbles() {
         bubble.style.left = `${pos.x}px`; bubble.style.top = `${pos.y}px`;
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.draggable = true;
-        // Drag & drop
         bubble.addEventListener('dragstart', e => { appState.draggedBubble = task; bubble.style.opacity = '0.5'; });
         bubble.addEventListener('dragend', e => { bubble.style.opacity = '1'; appState.draggedBubble = null; });
-        // Línea SVG curvada bezier - conecta borde del día con borde de la burbuja
         const taskCx = pos.x + size / 2;
         const taskCy = pos.y + size / 2;
         const dx = taskCx - dayCx;
         const dy = taskCy - dayCy;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        // Punto en el borde de la burbuja del día (radio = DAY_SIZE/2)
         const dayEdgeX = dayCx + (dx / dist) * (DAY_SIZE / 2);
         const dayEdgeY = dayCy + (dy / dist) * (DAY_SIZE / 2);
-        // Punto en el borde de la burbuja de tarea
         const taskEdgeX = taskCx - (dx / dist) * (size / 2);
         const taskEdgeY = taskCy - (dy / dist) * (size / 2);
-        // Punto de control para curva bezier orgánica (perpendicular al vector)
         const midX = (dayEdgeX + taskEdgeX) / 2;
         const midY = (dayEdgeY + taskEdgeY) / 2;
         const perpX = -dy / dist;
@@ -308,16 +409,13 @@ function renderBubbles() {
         const curvature = Math.min(dist * 0.15, 40);
         const ctrlX = midX + perpX * curvature * (Math.random() > 0.5 ? 1 : -1);
         const ctrlY = midY + perpY * curvature * (Math.random() > 0.5 ? 1 : -1);
-        // Crear path curvado
         const path = document.createElementNS(svgNS, 'path');
         path.setAttribute('d', `M ${dayEdgeX} ${dayEdgeY} Q ${ctrlX} ${ctrlY} ${taskEdgeX} ${taskEdgeY}`);
         path.setAttribute('stroke', task.color);
         svg.appendChild(path);
-        // Click
         bubble.addEventListener('click', (e) => { e.stopPropagation(); selectTask(task.id); });
         elements.canvasArea.appendChild(bubble);
     });
-    // Canvas drop zone
     elements.canvasArea.addEventListener('dragover', e => e.preventDefault());
     elements.canvasArea.addEventListener('drop', e => {
         e.preventDefault();
@@ -340,7 +438,6 @@ function updateStats() {
     renderHistory();
 }
 function updateProgressCircle() {
-    // Timer SVG circular
     const container = document.querySelector('.timer-progress-circle');
     if (!container) return;
     const total = appState.isBreak ? 15 * 60 : appState.TOTAL_FOCUS;
@@ -359,7 +456,7 @@ function updateTimerDisplay() {
     updateProgressCircle();
 }
 
-// ---- 9. TIMER ----
+// ---- 10. TIMER ----
 function startTimer() {
     if (appState.isTimerRunning) return;
     appState.isTimerRunning = true;
@@ -398,12 +495,12 @@ async function timerFinished() {
         }
         appState.isBreak = true; appState.secondsLeft = 15 * 60;
         elements.timerStatus.textContent = 'MODO DESCANSO';
-        elements.timerStatus.style.cssText = 'background-color:rgba(0,176,255,0.1);color:#00B0FF';
+        elements.timerStatus.style.cssText = 'background-color:var(--accent-glow);color:var(--accent-color)';
         setTimeout(() => alert('¡Bloque de foco completado! Descansa 15 min.'), 100);
     } else {
         appState.isBreak = false; appState.secondsLeft = appState.TOTAL_FOCUS;
         elements.timerStatus.textContent = 'MODO FOCO';
-        elements.timerStatus.style.cssText = 'background-color:rgba(0,176,255,0.1);color:#00B0FF';
+        elements.timerStatus.style.cssText = 'background-color:var(--accent-glow);color:var(--accent-color)';
         setTimeout(() => alert('¡Descanso terminado! Listo para otro bloque.'), 100);
     }
     updateTimerDisplay();
@@ -411,7 +508,7 @@ async function timerFinished() {
     elements.timerControls.start.disabled = false;
 }
 
-// ---- 10. EVENT LISTENERS ----
+// ---- 11. EVENT LISTENERS ----
 function selectTask(taskId) {
     const task = appState.tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -420,7 +517,7 @@ function selectTask(taskId) {
     appState.currentTask = task; appState.isBreak = false; appState.secondsLeft = appState.TOTAL_FOCUS;
     elements.timerTaskName.textContent = task.name;
     elements.timerStatus.textContent = 'MODO FOCO';
-    elements.timerStatus.style.cssText = 'background-color:rgba(0,176,255,0.1);color:#00B0FF';
+    elements.timerStatus.style.cssText = 'background-color:var(--accent-glow);color:var(--accent-color)';
     updateTimerDisplay();
     elements.timerOverlay.classList.add('active');
 }
@@ -431,7 +528,6 @@ async function addTask(name, color, notes) {
     renderTasks(); renderBubbles(); updateStats();
 }
 
-// Tema
 function toggleTheme() {
     const isLight = document.body.classList.toggle('light-theme');
     localStorage.setItem('mindfocus-theme', isLight ? 'light' : 'dark');
@@ -439,7 +535,7 @@ function toggleTheme() {
     icon.textContent = isLight ? '🌙' : '☀️';
 }
 
-// ---- 11. INIT ----
+// ---- 12. INIT ----
 document.addEventListener('DOMContentLoaded', () => {
     console.log('MindFocus App Iniciada 🚀');
     const saved = localStorage.getItem('mindfocus-theme');
@@ -448,7 +544,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, (user) => { updateAuthUI(user); if (user) loadTasksFromFirestore(); });
 
-    // Auth
     elements.btnLogin.addEventListener('click', () => { playClick(); isRegistering = false; toggleAuthMode(); elements.authModal.classList.add('active'); });
     elements.closeAuthModal.addEventListener('click', () => { elements.authModal.classList.remove('active'); elements.authForm.reset(); });
     elements.authToggleBtn.addEventListener('click', () => { playClick(); toggleAuthMode(); });
@@ -463,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     elements.btnLogout.addEventListener('click', async () => { playClick(); await logoutUser(); });
 
-    // Tareas
     elements.btnAddTask.addEventListener('click', () => elements.taskModal.classList.add('active'));
     elements.closeModal.addEventListener('click', () => { elements.taskModal.classList.remove('active'); elements.taskForm.reset(); });
     elements.closeTimer.addEventListener('click', () => { elements.timerOverlay.classList.remove('active'); pauseTimer(); });
@@ -474,12 +568,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     elements.themeSwitch.addEventListener('click', toggleTheme);
 
-    // Timer
     elements.timerControls.start.addEventListener('click', () => { playClick(); startTimer(); });
     elements.timerControls.pause.addEventListener('click', () => { playClick(); pauseTimer(); });
     elements.timerControls.reset.addEventListener('click', () => { playClick(); resetTimer(); });
 
-    // Export
     if (elements.btnExport) {
         elements.btnExport.addEventListener('click', () => {
             const fmt = confirm('¿Exportar como CSV? (Cancelar = Markdown)') ? 'csv' : 'md';
@@ -487,11 +579,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Presets
+    elements.btnSavePreset.addEventListener('click', () => {
+        if (!appState.tasks.length) { alert('Agrega tareas primero'); return; }
+        elements.presetModal.classList.add('active');
+    });
+    elements.closePresetModal.addEventListener('click', () => { elements.presetModal.classList.remove('active'); elements.presetForm.reset(); });
+    elements.presetForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('presetName').value.trim();
+        if (!name) return;
+        savePreset(name);
+        elements.presetModal.classList.remove('active');
+        elements.presetForm.reset();
+    });
+
     window.addEventListener('click', (e) => {
         if (e.target === elements.taskModal) elements.taskModal.classList.remove('active');
         if (e.target === elements.timerOverlay) { elements.timerOverlay.classList.remove('active'); pauseTimer(); }
         if (e.target === elements.authModal) elements.authModal.classList.remove('active');
+        if (e.target === elements.presetModal) elements.presetModal.classList.remove('active');
     });
 
+    loadPresets();
     renderTasks(); renderBubbles(); renderHistory(); updateStats();
 });
+
+// Funciones globales para onclick inline
+window.loadPreset = loadPreset;
+window.deletePreset = deletePreset;
+window.toggleTaskBar = toggleTaskBar;
+window.deleteTask = deleteTask;

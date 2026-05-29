@@ -45,6 +45,17 @@
                 <!-- Las tareas se agregarán dinámicamente aquí -->
             </div>
 
+            <!-- Sesiones Guardadas -->
+            <div class="presets-container">
+                <div class="presets-header">
+                    <h3>Sesiones Guardadas</h3>
+                    <button class="btn-save-preset" id="btnSavePreset" title="Guardar sesión actual">💾</button>
+                </div>
+                <div class="presets-list" id="presetsList">
+                    <!-- Presets generados dinámicamente -->
+                </div>
+            </div>
+
             <div class="stats-container">
                 <h3>Estadísticas</h3>
                 <div class="stat-item">
@@ -151,6 +162,21 @@
                     <button type="button" class="btn-toggle-auth" id="authToggleBtn" style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-weight: 600;">Regístrate</button>
                 </p>
                 </form>
+        </div>
+    </div>
+
+    <!-- Modal para Guardar Preset -->
+    <div class="modal" id="presetModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closePresetModal">&times;</span>
+            <h2>Guardar Sesión</h2>
+            <form id="presetForm">
+                <div class="form-group">
+                    <label for="presetName">Nombre de la sesión</label>
+                    <input type="text" id="presetName" required placeholder="Ej: Proyecto JavaScript">
+                </div>
+                <button type="submit" class="btn-submit">Guardar</button>
+            </form>
         </div>
     </div>
 
