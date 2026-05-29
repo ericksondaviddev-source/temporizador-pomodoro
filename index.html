@@ -25,10 +25,6 @@
                     <span class="login-icon">🔐</span>
                     <span>Iniciar Sesión</span>
                 </button>
-                <div class="user-info hidden" id="userInfo">
-                    <button class="btn-profile" id="btnProfile" title="Mi Perfil">👤</button>
-                    <button class="btn-logout" id="btnLogout">Cerrar Sesión</button>
-                </div>
             </div>
             <button class="theme-switch" id="themeSwitch" aria-label="Cambiar tema">
                 <span class="theme-icon">🌙</span>
@@ -43,7 +39,7 @@
             <!-- Perfil Section -->
             <div class="sidebar-section profile-container" id="profileContainer">
                 <div class="sidebar-section-header" onclick="toggleSidebarSection('profile')">
-                    <span class="sidebar-section-title">👤 Mi Perfil</span>
+                    <span class="sidebar-section-title">👤 Mi Cuenta</span>
                     <button class="sidebar-section-toggle" id="profileToggleBtn">▼</button>
                 </div>
                 <div class="sidebar-section-content" id="profileSectionContent">
@@ -54,24 +50,7 @@
                             <div class="profile-email" id="profileEmail">email@example.com</div>
                         </div>
                     </div>
-                    <div class="profile-customizations">
-                        <div class="profile-custom-item">
-                            <span class="profile-custom-label">Nombre</span>
-                            <input type="text" id="profileInputName" class="profile-input" placeholder="Tu nombre">
-                        </div>
-                        <div class="profile-custom-item">
-                            <span class="profile-custom-label">Color</span>
-                            <input type="color" id="profileInputColor" class="profile-color-input" value="#00B0FF">
-                        </div>
-                        <div class="profile-custom-item">
-                            <span class="profile-custom-label">Tema</span>
-                            <select id="profileInputTheme" class="profile-select">
-                                <option value="dark">Oscuro</option>
-                                <option value="light">Claro</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn-save-profile" id="btnSaveProfile">Guardar</button>
+                    <button class="btn-logout" id="btnLogout" style="width:100%;margin-top:0.5rem;padding:0.5rem;">Cerrar Sesión</button>
                 </div>
             </div>
 

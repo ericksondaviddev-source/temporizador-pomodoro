@@ -58,17 +58,10 @@ const elements = {
     },
     authSection: document.getElementById('authSection'),
     btnLogin: document.getElementById('btnLogin'),
-    btnLogout: document.getElementById('btnLogout'),
-    userInfo: document.getElementById('userInfo'),
-    btnProfile: document.getElementById('btnProfile'),
     profileContainer: document.getElementById('profileContainer'),
     profileAvatar: document.getElementById('profileAvatar'),
     profileName: document.getElementById('profileName'),
     profileEmail: document.getElementById('profileEmail'),
-    profileInputName: document.getElementById('profileInputName'),
-    profileInputColor: document.getElementById('profileInputColor'),
-    profileInputTheme: document.getElementById('profileInputTheme'),
-    btnSaveProfile: document.getElementById('btnSaveProfile'),
     authModal: document.getElementById('authModal'),
     closeAuthModal: document.getElementById('closeAuthModal'),
     authForm: document.getElementById('authForm'),
@@ -165,20 +158,13 @@ function updateAuthUI(user) {
     if (user) {
         appState.currentUser = user;
         elements.btnLogin.classList.add('hidden');
-        elements.userInfo.classList.remove('hidden');
         elements.profileContainer.classList.remove('hidden');
         elements.profileName.textContent = user.displayName || 'Usuario';
         elements.profileEmail.textContent = user.email;
-        elements.profileInputName.value = user.displayName || '';
-        const savedColor = localStorage.getItem('mindfocus-accent-color');
-        if (savedColor) elements.profileInputColor.value = savedColor;
-        const savedTheme = localStorage.getItem('mindfocus-theme') || 'dark';
-        if (elements.profileInputTheme) elements.profileInputTheme.value = savedTheme;
         elements.authModal.classList.remove('active');
     } else {
         appState.currentUser = null;
         elements.btnLogin.classList.remove('hidden');
-        elements.userInfo.classList.add('hidden');
         elements.profileContainer.classList.add('hidden');
         elements.profileAvatar.textContent = '👤';
         elements.profileName.textContent = '';
@@ -229,42 +215,6 @@ function toggleSidebarSection(section) {
         toggle.classList.toggle('collapsed');
     }
     playClick();
-}
-async function saveProfile() {
-    if (!appState.currentUser) {
-        alert('Debes iniciar sesión para guardar el perfil');
-        return;
-    }
-    const nameInput = document.getElementById('profileInputName');
-    const colorInput = document.getElementById('profileInputColor');
-    const themeSelect = document.getElementById('profileInputTheme');
-    if (!nameInput || !colorInput || !themeSelect) {
-        console.error('Profile elements not found');
-        return;
-    }
-    const newName = nameInput.value.trim().slice(0, 60);
-    const newColor = colorInput.value;
-    const newTheme = themeSelect.value;
-    try {
-        if (newName) await appState.currentUser.updateProfile({ displayName: newName });
-        localStorage.setItem('mindfocus-accent-color', newColor);
-        if (newTheme === 'light') {
-            document.body.classList.add('light-theme');
-            localStorage.setItem('mindfocus-theme', 'light');
-            elements.themeSwitch.querySelector('.theme-icon').textContent = '☀️';
-        } else {
-            document.body.classList.remove('light-theme');
-            localStorage.setItem('mindfocus-theme', 'dark');
-            elements.themeSwitch.querySelector('.theme-icon').textContent = '🌙';
-        }
-        const profileNameEl = document.getElementById('profileName');
-        if (profileNameEl) profileNameEl.textContent = newName || 'Usuario';
-        playClick();
-        alert('Perfil actualizado');
-    } catch (e) {
-        console.error('Error guardando perfil:', e);
-        alert('Error al guardar perfil');
-    }
 }
 
 // ---- 8. PRESETS (SESIONES GUARDADAS) ----
@@ -441,42 +391,50 @@ function deleteTask(taskId, e) {
     renderTasks(); renderBubbles(); updateStats();
 }
 function renderBubbles() {
-    console.log('renderBubbles called, tasks:', appState.tasks.length);
     const old = elements.canvasArea.querySelectorAll('.task-bubble, .svg-overlay, .day-bubble');
     old.forEach(el => el.remove());
+
     if (!appState.tasks || appState.tasks.length === 0) {
-        console.log('No tasks, showing placeholder');
         if (elements.canvasPlaceholder) elements.canvasPlaceholder.style.display = 'block';
         return;
     }
-    elements.canvasPlaceholder.style.display = 'none';
+
+    if (elements.canvasPlaceholder) elements.canvasPlaceholder.style.display = 'none';
+
     const rect = elements.canvasArea.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+
     const cx = rect.width / 2;
-    const cy = rect.height / 2;
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
+
     const DAY_SIZE = 130;
     const dayCx = cx, dayCy = 80 + DAY_SIZE / 2;
-    const today = new Date().toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' });
-    const stats = getHistoryData().pop();
-    const dayBubble = document.createElement('div'); dayBubble.className = 'day-bubble';
-    dayBubble.style.left = `${cx}px`; dayBubble.style.top = `80px`;
     const fullDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const stats = getHistoryData().pop();
+    const dayBubble = document.createElement('div');
+    dayBubble.className = 'day-bubble';
+    dayBubble.style.left = `${cx}px`;
+    dayBubble.style.top = `80px`;
     dayBubble.innerHTML = `<div style="font-size:0.9rem;font-weight:700;text-transform:capitalize">${fullDate}</div><div style="font-size:.7rem;opacity:.9;margin-top:4px">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
+
     const SIZE_INCREMENT = 1.06;
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
         const size = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
         const bubble = document.createElement('div');
         bubble.className = 'task-bubble';
-        bubble.style.width = `${size}px`; bubble.style.height = `${size}px`; bubble.style.backgroundColor = task.color;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.backgroundColor = task.color;
         bubble.textContent = task.name;
         let pos = task.position;
         if (!pos) { pos = getRandomPosition(size); task.position = pos; }
-        bubble.style.left = `${pos.x}px`; bubble.style.top = `${pos.y}px`;
+        bubble.style.left = `${pos.x}px`;
+        bubble.style.top = `${pos.y}px`;
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.draggable = true;
         bubble.addEventListener('dragstart', e => { appState.draggedBubble = task; bubble.style.opacity = '0.5'; });
@@ -504,15 +462,16 @@ function renderBubbles() {
         bubble.addEventListener('click', (e) => { e.stopPropagation(); selectTask(task.id); });
         elements.canvasArea.appendChild(bubble);
     });
+
     elements.canvasArea.addEventListener('dragover', e => e.preventDefault());
     elements.canvasArea.addEventListener('drop', e => {
         e.preventDefault();
         if (appState.draggedBubble && appState.draggedBubble.position) {
-            const rect = elements.canvasArea.getBoundingClientRect();
-            const size = Math.round((96 + Math.min(Math.floor((appState.draggedBubble.totalFocusTime || 0) / 60) * 2, 120)) * SIZE_INCREMENT);
+            const dropRect = elements.canvasArea.getBoundingClientRect();
+            const dropSize = Math.round((96 + Math.min(Math.floor((appState.draggedBubble.totalFocusTime || 0) / 60) * 2, 120)) * SIZE_INCREMENT);
             appState.draggedBubble.position = {
-                x: e.clientX - rect.left - size / 2,
-                y: e.clientY - rect.top - size / 2
+                x: e.clientX - dropRect.left - dropSize / 2,
+                y: e.clientY - dropRect.top - dropSize / 2
             };
             renderBubbles();
         }
@@ -651,11 +610,6 @@ document.addEventListener('DOMContentLoaded', () => {
             loginWithEmail(email, password).then(() => { elements.authModal.classList.remove('active'); elements.authForm.reset(); });
         }
     });
-    elements.btnLogout.addEventListener('click', async () => { playClick(); await logoutUser(); });
-    const saveProfileBtn = document.getElementById('btnSaveProfile');
-    if (saveProfileBtn) {
-        saveProfileBtn.addEventListener('click', () => { playClick(); saveProfile(); });
-    }
 
     elements.btnAddTask.addEventListener('click', () => elements.taskModal.classList.add('active'));
     elements.closeModal.addEventListener('click', () => { elements.taskModal.classList.remove('active'); elements.taskForm.reset(); });
