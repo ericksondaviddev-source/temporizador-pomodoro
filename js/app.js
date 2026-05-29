@@ -92,299 +92,25 @@ function generateId() { return Date.now().toString(36) + Math.random().toString(
 function getRandomPosition(sz) {
     const w = elements.canvasArea.clientWidth;
     const h = elements.canvasArea.clientHeight;
-    const minY = 220;
-    return { x: Math.random() * (w - sz - 40) + 20, y: minY + Math.random() * (h - sz - minY - 40) };
-}
-
-// ---- 4. SONIDOS ----
-function playClick() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'sine'; o.frequency.setValueAtTime(800, ctx.currentTime);
-        g.gain.setValueAtTime(0.1, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-        o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.1);
-    } catch (e) { console.warn('Click sound error', e); }
-}
-function playGong() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'sine'; o.frequency.setValueAtTime(150, ctx.currentTime);
-        o.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 2);
-        g.gain.setValueAtTime(0.5, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 3);
-        o.start(ctx.currentTime); o.stop(ctx.currentTime + 3);
-        const o2 = ctx.createOscillator(), g2 = ctx.createGain();
-        o2.connect(g2); g2.connect(ctx.destination);
-        o2.type = 'triangle'; o2.frequency.setValueAtTime(200, ctx.currentTime);
-        o2.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.5);
-        g2.gain.setValueAtTime(0.1, ctx.currentTime);
-        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
-        o2.start(ctx.currentTime + 0.1); o2.stop(ctx.currentTime + 2.1);
-    } catch (e) { console.warn('Gong sound error', e); }
-}
-
-// ---- 5. AUTENTICACIÓN ----
-let isRegistering = false;
-async function registerWithEmail(email, password, name) {
-    try {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        await result.user.updateProfile({ displayName: name });
-        return result.user;
-    } catch (e) {
-        console.error('Error registro:', e);
-        alert('Error al registrar: ' + (e.message || 'Verifica tus datos'));
-        throw e;
-    }
-}
-async function loginWithEmail(email, password) {
-    const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
-}
-async function logoutUser() { await signOut(auth); }
-function toggleAuthMode() {
-    isRegistering = !isRegistering;
-    elements.authTitle.textContent = isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión';
-    elements.authSubmit.textContent = isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión';
-    elements.authToggleText.textContent = isRegistering ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?';
-    elements.authToggleBtn.textContent = isRegistering ? 'Iniciar Sesión' : 'Regístrate';
-    elements.nameGroup.style.display = isRegistering ? 'block' : 'none';
-}
-function updateAuthUI(user) {
-    if (user) {
-        appState.currentUser = user;
-        elements.btnLogin.classList.add('hidden');
-        elements.profileContainer.classList.remove('hidden');
-        elements.profileName.textContent = user.displayName || 'Usuario';
-        elements.profileEmail.textContent = user.email;
-        elements.authModal.classList.remove('active');
-    } else {
-        appState.currentUser = null;
-        elements.btnLogin.classList.remove('hidden');
-        elements.profileContainer.classList.add('hidden');
-        elements.profileAvatar.textContent = '👤';
-        elements.profileName.textContent = '';
-        elements.profileEmail.textContent = '';
-        appState.tasks = []; renderTasks(); renderBubbles(); renderHistory();
-    }
-}
-
-// ---- 6. FIRESTORE ----
-function getTasksCollection() {
-    return appState.currentUser ? collection(db, 'users', appState.currentUser.uid, 'tasks') : null;
-}
-async function loadTasksFromFirestore() {
-    if (!appState.currentUser) return;
-    try {
-        const q = query(getTasksCollection(), where('userId', '==', appState.currentUser.uid));
-        const snap = await getDocs(q);
-        appState.tasks = [];
-        snap.forEach(d => appState.tasks.push({ id: d.id, ...d.data() }));
-        renderTasks(); renderHistory();
-    } catch (e) { console.error('Load tasks error', e); }
-}
-async function saveTaskToFirestore(task) {
-    if (!appState.currentUser) return;
-    try {
-        await addDoc(getTasksCollection(), { ...task, userId: appState.currentUser.uid, createdAt: new Date().toISOString() });
-    } catch (e) { console.error('Save task error', e); }
-}
-async function updateTaskInFirestore(taskId, updates) {
-    if (!appState.currentUser) return;
-    try {
-        await updateDoc(doc(db, 'users', appState.currentUser.uid, 'tasks', taskId), { ...updates, updatedAt: new Date().toISOString() });
-    } catch (e) { console.error('Update task error', e); }
-}
-async function deleteTaskFromFirestore(taskId) {
-    if (!appState.currentUser) return;
-    try {
-        await deleteDoc(doc(db, 'users', appState.currentUser.uid, 'tasks', taskId));
-    } catch (e) { console.error('Delete task error', e); }
-}
-
-// ---- 7. SIDEBAR SECTIONS ----
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    const icon = document.getElementById('sidebarToggleIcon');
-    if (sidebar && toggle) {
-        sidebar.classList.toggle('collapsed');
-        toggle.classList.toggle('active');
-        if (icon) {
-            icon.textContent = sidebar.classList.contains('collapsed') ? '✕' : '☰';
-        }
-    }
-    playClick();
-}
-function toggleSidebarSection(section) {
-    const content = document.getElementById(section + 'SectionContent');
-    const toggle = document.getElementById(section + 'ToggleBtn');
-    if (content && toggle) {
-        content.classList.toggle('collapsed');
-        toggle.classList.toggle('collapsed');
-    }
-    playClick();
-}
-
-// ---- 8. PRESETS (SESIONES GUARDADAS) ----
-function loadPresets() {
-    const saved = localStorage.getItem('mindfocus-presets');
-    appState.presets = saved ? JSON.parse(saved) : [];
-    renderPresets();
-}
-function savePresets() {
-    localStorage.setItem('mindfocus-presets', JSON.stringify(appState.presets));
-}
-function savePreset(name) {
-    const safeName = sanitizePresetName(name);
-    if (!safeName) return;
-    const preset = {
-        id: generateId(),
-        name: safeName,
-        tasks: appState.tasks.map(t => ({
-            name: escapeHtml(t.name).slice(0, 60),
-            color: t.color,
-            notes: escapeHtml(t.notes || '').slice(0, 500)
-        })),
-        createdAt: new Date().toISOString()
+    const minY = 200;
+    const padding = 20;
+    return {
+        x: Math.max(padding, Math.min(w - sz - padding, Math.random() * (w - sz - padding * 2) + padding)),
+        y: Math.max(minY, Math.min(h - sz - padding, Math.random() * (h - sz - minY - padding) + minY))
     };
-    appState.presets.push(preset);
-    savePresets();
-    renderPresets();
-}
-function loadPreset(presetId) {
-    const preset = appState.presets.find(p => p.id === presetId);
-    if (!preset) return;
-    if (!confirm(`¿Cargar "${preset.name}"? Esto reemplazará las tareas actuales.`)) return;
-    appState.tasks = preset.tasks.map(t => ({
-        id: generateId(),
-        name: t.name,
-        color: t.color,
-        notes: t.notes,
-        totalFocusTime: 0,
-        sessionsCompleted: 0,
-        position: null
-    }));
-    renderTasks(); renderBubbles(); updateStats();
-    if (appState.currentUser) {
-        appState.tasks.forEach(async t => await saveTaskToFirestore(t));
-    }
-}
-function deletePreset(presetId, e) {
-    e.stopPropagation();
-    appState.presets = appState.presets.filter(p => p.id !== presetId);
-    savePresets();
-    renderPresets();
-}
-function renderPresets() {
-    if (!elements.presetsList) return;
-    if (!appState.presets.length) {
-        elements.presetsList.innerHTML = '<p class="no-presets">Sin sesiones guardadas</p>';
-        return;
-    }
-    elements.presetsList.innerHTML = appState.presets.map(p => `
-        <div class="preset-item" onclick="loadPreset('${p.id}')">
-            <span class="preset-item-name">${sanitizePresetName(p.name)}</span>
-            <span class="preset-item-count">${p.tasks.length} tareas</span>
-            <button class="preset-item-delete" onclick="deletePreset('${p.id}', event)">✕</button>
-        </div>
-    `).join('');
 }
 
-// ---- 9. HISTORIAL Y EXPORT ----
-function getHistoryData() {
-    const raw = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
-    const today = new Date();
-    const days = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
-    const arr = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(today); d.setDate(d.getDate() - i);
-        const key = d.toISOString().split('T')[0];
-        const data = raw[key] || { sessions: 0, minutes: 0 };
-        arr.push({ day: days[d.getDay()], ...data });
-    }
-    return arr;
-}
-function saveSessionToHistory(minutes) {
-    const raw = JSON.parse(localStorage.getItem('mindfocus-history') || '{}');
-    const key = new Date().toISOString().split('T')[0];
-    if (!raw[key]) raw[key] = { sessions: 0, minutes: 0 };
-    raw[key].sessions += 1; raw[key].minutes += minutes;
-    localStorage.setItem('mindfocus-history', JSON.stringify(raw));
-    renderHistory();
-}
-function renderHistory() {
-    if (!elements.historyChart) return;
-    const data = getHistoryData();
-    const max = Math.max(...data.map(d => d.sessions), 1);
-    elements.historyChart.innerHTML = data.map((d, i) => {
-        const height = (d.sessions / max) * 100;
-        return `<div class="history-bar" style="--h:${height}%" title="${d.day}: ${d.sessions} sesiones, ${d.minutes} min"><div class="bar" style="height:${height}%"></div><span>${d.day}</span></div>`;
-    }).join('');
-}
-function exportData(format) {
-    if (!appState.currentUser) { alert('Inicia sesión para exportar datos'); return; }
-    const history = getHistoryData();
-    const totalSessions = appState.tasks.reduce((s, t) => s + (t.sessionsCompleted || 0), 0);
-    const totalMinutes = Math.floor(appState.tasks.reduce((s, t) => s + (t.totalFocusTime || 0), 0) / 60);
-    if (format === 'csv') {
-        let csv = 'Tarea,Color,Notas,Sesiones,Minutos_Foco\n';
-        appState.tasks.forEach(t => csv += `"${t.name}","${t.color}","${t.notes || ''}",${t.sessionsCompleted || 0},${Math.floor((t.totalFocusTime || 0) / 60)}\n`);
-        csv += `\nTotal,Sesiones,Minutos\n,,${totalSessions},${totalMinutes}\n`;
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'mindfocus-tareas.csv'; a.click(); URL.revokeObjectURL(url);
-    } else if (format === 'md') {
-        let md = `# MindFocus Reporte - ${new Date().toLocaleDateString('es-ES')}\n\n## Tareas\n\n| Tarea | Color | Sesiones | Minutos |\n|-------|-------|----------|--------|\n`;
-        appState.tasks.forEach(t => md += `| ${t.name} | ${t.color} | ${t.sessionsCompleted || 0} | ${Math.floor((t.totalFocusTime || 0) / 60)} |\n`);
-        md += `\n**Total Sesiones:** ${totalSessions}\n**Total Minutos:** ${totalMinutes}\n`;
-        md += `\n## Historial Semanal\n\n| Día | Sesiones | Minutos |\n|-----|----------|--------|\n`;
-        history.forEach(h => md += `| ${h.day} | ${h.sessions} | ${h.minutes} |\n`);
-        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'mindfocus-reporte.md'; a.click(); URL.revokeObjectURL(url);
-    }
+function clampPosition(pos, size) {
+    const w = elements.canvasArea.clientWidth;
+    const h = elements.canvasArea.clientHeight;
+    const padding = 10;
+    const minY = 180;
+    return {
+        x: Math.max(padding, Math.min(w - size - padding, pos.x)),
+        y: Math.max(minY, Math.min(h - size - padding, pos.y))
+    };
 }
 
-// ---- 10. RENDERIZADO ----
-function renderTasks() {
-    elements.taskList.innerHTML = '';
-    if (!appState.tasks.length) {
-        elements.taskList.innerHTML = '<p class="no-tasks">No hay tareas. ¡Agrega una!</p>';
-        return;
-    }
-    appState.tasks.forEach(task => {
-        const mins = Math.floor((task.totalFocusTime || 0) / 60);
-        const bar = document.createElement('div');
-        bar.className = 'task-bar';
-        bar.style.setProperty('--bar-color', task.color);
-        bar.innerHTML = `
-            <div class="task-bar-color" style="background-color:${task.color}"></div>
-            <div class="task-bar-info">
-                <div class="task-bar-name">${escapeHtml(task.name)}</div>
-                <div class="task-bar-meta">${mins} min · ${task.sessionsCompleted || 0} ses</div>
-                ${task.notes ? `<div class="task-bar-notes">${escapeHtml(task.notes)}</div>` : ''}
-            </div>
-            <button class="task-bar-delete" onclick="deleteTask('${task.id}', event)">🗑️</button>
-        `;
-        bar.addEventListener('click', (e) => {
-            if (!e.target.closest('.task-bar-delete')) selectTask(task.id);
-        });
-        elements.taskList.appendChild(bar);
-    });
-}
-function deleteTask(taskId, e) {
-    e.stopPropagation();
-    if (!confirm('¿Eliminar esta tarea?')) return;
-    appState.tasks = appState.tasks.filter(t => t.id !== taskId);
-    if (appState.currentUser) deleteTaskFromFirestore(taskId);
-    playClick();
-    renderTasks(); renderBubbles(); updateStats();
-}
 function renderBubbles() {
     const old = elements.canvasArea.querySelectorAll('.task-bubble, .svg-overlay, .day-bubble');
     old.forEach(el => el.remove());
@@ -405,29 +131,37 @@ function renderBubbles() {
     svg.classList.add('svg-overlay');
     elements.canvasArea.appendChild(svg);
 
-    const DAY_SIZE = 130;
-    const dayCx = cx, dayCy = 80 + DAY_SIZE / 2;
+    const isMobile = window.innerWidth <= 768;
+    const DAY_SIZE = isMobile ? 80 : 130;
+    const dayCx = cx, dayCy = 60 + DAY_SIZE / 2;
     const fullDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     const stats = getHistoryData().pop();
     const dayBubble = document.createElement('div');
     dayBubble.className = 'day-bubble';
     dayBubble.style.left = `${cx}px`;
-    dayBubble.style.top = `80px`;
-    dayBubble.innerHTML = `<div style="font-size:0.9rem;font-weight:700;text-transform:capitalize">${fullDate}</div><div style="font-size:.7rem;opacity:.9;margin-top:4px">${stats.sessions} ses · ${stats.minutes} min</div>`;
+    dayBubble.style.top = isMobile ? '20px' : '80px';
+    dayBubble.innerHTML = `<div style="font-size:${isMobile ? '0.6rem' : '0.9rem'};font-weight:700;text-transform:capitalize">${fullDate}</div><div style="font-size:${isMobile ? '0.5rem' : '.7rem'};opacity:.9;margin-top:4px">${stats.sessions} ses · ${stats.minutes} min</div>`;
     elements.canvasArea.appendChild(dayBubble);
 
     const SIZE_INCREMENT = 1.06;
+    const isMobile = window.innerWidth <= 768;
+    const mobileMultiplier = isMobile ? 0.7 : 1;
+
     appState.tasks.forEach(task => {
         const mins = Math.floor((task.totalFocusTime || 0) / 60);
-        const size = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
+        const baseSize = Math.round((96 + Math.min(mins * 2, 120)) * SIZE_INCREMENT);
+        const size = Math.round(baseSize * mobileMultiplier);
         const bubble = document.createElement('div');
         bubble.className = 'task-bubble';
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
         bubble.style.backgroundColor = task.color;
         bubble.textContent = task.name;
+        bubble.style.fontSize = isMobile ? '0.65rem' : '0.8rem';
         let pos = task.position;
-        if (!pos) { pos = getRandomPosition(size); task.position = pos; }
+        if (!pos) { pos = getRandomPosition(size); }
+        pos = clampPosition(pos, size);
+        task.position = pos;
         bubble.style.left = `${pos.x}px`;
         bubble.style.top = `${pos.y}px`;
         bubble.style.animationDelay = `${Math.random() * 2}s`;
@@ -463,11 +197,14 @@ function renderBubbles() {
         e.preventDefault();
         if (appState.draggedBubble && appState.draggedBubble.position) {
             const dropRect = elements.canvasArea.getBoundingClientRect();
-            const dropSize = Math.round((96 + Math.min(Math.floor((appState.draggedBubble.totalFocusTime || 0) / 60) * 2, 120)) * SIZE_INCREMENT);
-            appState.draggedBubble.position = {
+            const isMobile = window.innerWidth <= 768;
+            const mobileMultiplier = isMobile ? 0.7 : 1;
+            const dropSize = Math.round(Math.round((96 + Math.min(Math.floor((appState.draggedBubble.totalFocusTime || 0) / 60) * 2, 120)) * SIZE_INCREMENT) * mobileMultiplier);
+            const rawPos = {
                 x: e.clientX - dropRect.left - dropSize / 2,
                 y: e.clientY - dropRect.top - dropSize / 2
             };
+            appState.draggedBubble.position = clampPosition(rawPos, dropSize);
             renderBubbles();
         }
     });
