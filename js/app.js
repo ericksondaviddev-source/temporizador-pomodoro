@@ -3,7 +3,7 @@
    ========================================== */
 
 import {
-    auth, db, googleProvider, signInWithRedirect, signOut, onAuthStateChanged,
+    auth, db, signOut, onAuthStateChanged,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where
 } from './firebase-config.js';
@@ -64,7 +64,6 @@ const elements = {
     authToggleBtn: document.getElementById('authToggleBtn'),
     authToggleText: document.getElementById('authToggleText'),
     nameGroup: document.getElementById('nameGroup'),
-    btnGoogleLogin: document.getElementById('btnGoogleLogin'),
     // Nuevos elementos
     historyChart: document.getElementById('historyChart'),
     btnExport: document.getElementById('btnExport')
@@ -125,14 +124,6 @@ async function registerWithEmail(email, password, name) {
 async function loginWithEmail(email, password) {
     const result = await signInWithEmailAndPassword(auth, email, password);
     return result.user;
-}
-async function loginWithGoogle() {
-    try {
-        await signInWithRedirect(auth, googleProvider);
-    } catch (error) {
-        alert('Error: ' + error.message);
-        throw error;
-    }
 }
 async function logoutUser() { await signOut(auth); }
 function toggleAuthMode() {
@@ -445,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
             loginWithEmail(email, password).then(() => { elements.authModal.classList.remove('active'); elements.authForm.reset(); });
         }
     });
-    elements.btnGoogleLogin.addEventListener('click', () => { playClick(); loginWithGoogle().then(() => elements.authModal.classList.remove('active')); });
     elements.btnLogout.addEventListener('click', async () => { playClick(); await logoutUser(); });
 
     // Tareas

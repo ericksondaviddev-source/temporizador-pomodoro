@@ -143,6 +143,16 @@ body {
     display: none !important;
 }
 
+.logo-container .signature {
+    font-size: 0.75rem;
+    color: var(--accent-color);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
 .logo-container h1 {
     font-size: 1.5rem;
     font-weight: 700;
