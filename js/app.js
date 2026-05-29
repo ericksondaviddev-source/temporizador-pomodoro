@@ -3,7 +3,7 @@
    ========================================== */
 
 import {
-    auth, db, googleProvider, signInWithPopup, signOut, onAuthStateChanged,
+    auth, db, googleProvider, signInWithRedirect, signOut, onAuthStateChanged,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
     collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where
 } from './firebase-config.js';
@@ -128,10 +128,9 @@ async function loginWithEmail(email, password) {
 }
 async function loginWithGoogle() {
     try {
-        const result = await signInWithPopup(auth, googleProvider);
-        return result.user;
+        await signInWithRedirect(auth, googleProvider);
     } catch (error) {
-        if (error.code !== 'auth/popup-closed-by-user') alert('Error: ' + error.message);
+        alert('Error: ' + error.message);
         throw error;
     }
 }
@@ -418,7 +417,6 @@ async function addTask(name, color, notes) {
 }
 
 // Tema
-toggleTheme
 function toggleTheme() {
     const isDark = document.body.classList.toggle('dark-theme');
     localStorage.setItem('mindfocus-theme', isDark ? 'dark' : 'light');
