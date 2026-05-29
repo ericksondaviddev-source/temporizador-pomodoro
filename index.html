@@ -37,11 +37,11 @@
         <aside class="sidebar">
             <!-- Perfil Section -->
             <div class="sidebar-section profile-container" id="profileContainer">
-                <div class="sidebar-section-header" onclick="toggleProfileSection()">
-                    <span class="sidebar-section-title">Mi Perfil</span>
-                    <button class="sidebar-section-toggle" id="profileToggle">▼</button>
+                <div class="sidebar-section-header" onclick="toggleSidebarSection('profile')">
+                    <span class="sidebar-section-title">👤 Mi Perfil</span>
+                    <button class="sidebar-section-toggle" id="profileToggleBtn">▼</button>
                 </div>
-                <div class="profile-content" id="profileContent">
+                <div class="sidebar-section-content" id="profileSectionContent">
                     <div class="profile-header">
                         <div class="profile-avatar" id="profileAvatar">👤</div>
                         <div class="profile-info">
@@ -55,65 +55,76 @@
                             <input type="text" id="profileInputName" class="profile-input" placeholder="Tu nombre">
                         </div>
                         <div class="profile-custom-item">
-                            <span class="profile-custom-label">Color favorito</span>
+                            <span class="profile-custom-label">Color</span>
                             <input type="color" id="profileInputColor" class="profile-color-input" value="#00B0FF">
                         </div>
                         <div class="profile-custom-item">
-                            <span class="profile-custom-label">Modo por defecto</span>
+                            <span class="profile-custom-label">Tema</span>
                             <select id="profileInputTheme" class="profile-select">
                                 <option value="dark">Oscuro</option>
                                 <option value="light">Claro</option>
                             </select>
                         </div>
                     </div>
-                    <button class="btn-save-profile" id="btnSaveProfile">Guardar Cambios</button>
+                    <button class="btn-save-profile" id="btnSaveProfile">Guardar</button>
                 </div>
             </div>
 
-            <div class="sidebar-header">
-                <h2>Mis Tareas</h2>
-                <button class="btn-add" id="btnAddTask">+</button>
-            </div>
-            
-            <div class="task-list" id="taskList">
-                <!-- Las tareas se agregarán dinámicamente aquí -->
+            <!-- Mis Tareas -->
+            <div class="sidebar-section" id="tasksSection">
+                <div class="sidebar-section-header" onclick="toggleSidebarSection('tasks')">
+                    <span class="sidebar-section-title">📋 Mis Tareas</span>
+                    <button class="btn-add" id="btnAddTask" style="width:24px;height:24px;font-size:1rem;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px;">+</button>
+                    <button class="sidebar-section-toggle" id="tasksToggleBtn">▼</button>
+                </div>
+                <div class="sidebar-section-content" id="tasksSectionContent">
+                    <div class="task-list" id="taskList"></div>
+                </div>
             </div>
 
             <!-- Sesiones Guardadas -->
-            <div class="presets-container">
-                <div class="presets-header">
-                    <h3>Sesiones Guardadas</h3>
-                    <button class="btn-save-preset" id="btnSavePreset" title="Guardar sesión actual">💾</button>
+            <div class="sidebar-section" id="presetsSection">
+                <div class="sidebar-section-header" onclick="toggleSidebarSection('presets')">
+                    <span class="sidebar-section-title">💾 Sesiones</span>
+                    <button class="sidebar-section-toggle" id="presetsToggleBtn">▼</button>
                 </div>
-                <div class="presets-list" id="presetsList">
-                    <!-- Presets generados dinámicamente -->
+                <div class="sidebar-section-content" id="presetsSectionContent">
+                    <div class="presets-list" id="presetsList"></div>
+                    <button class="btn-save-preset" id="btnSavePreset" style="width:100%;margin-top:0.5rem;">+ Guardar Sesión</button>
                 </div>
             </div>
 
-            <div class="stats-container">
-                <h3>Estadísticas</h3>
-                <div class="stat-item">
-                    <span class="stat-label">Sesiones hoy:</span>
-                    <span class="stat-value" id="sessionsToday">0</span>
+            <!-- Estadísticas -->
+            <div class="sidebar-section" id="statsSection">
+                <div class="sidebar-section-header" onclick="toggleSidebarSection('stats')">
+                    <span class="sidebar-section-title">📊 Estadísticas</span>
+                    <button class="sidebar-section-toggle" id="statsToggleBtn">▼</button>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Minutos de foco:</span>
-                    <span class="stat-value" id="minutesFocused">0</span>
+                <div class="sidebar-section-content" id="statsSectionContent">
+                    <div class="stat-item">
+                        <span class="stat-label">Sesiones hoy:</span>
+                        <span class="stat-value" id="sessionsToday">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Minutos de foco:</span>
+                        <span class="stat-value" id="minutesFocused">0</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Historial Semanal -->
-            <div class="history-container">
-                <h3>Historial Semanal</h3>
-                <div class="history-chart" id="historyChart">
-                    <!-- Barras generadas dinámicamente -->
+            <div class="sidebar-section" id="historySection">
+                <div class="sidebar-section-header" onclick="toggleSidebarSection('history')">
+                    <span class="sidebar-section-title">📅 Historial</span>
+                    <button class="sidebar-section-toggle" id="historyToggleBtn">▼</button>
+                </div>
+                <div class="sidebar-section-content" id="historySectionContent">
+                    <div class="history-chart" id="historyChart"></div>
+                    <button class="btn-export" id="btnExport" style="margin-top:0.5rem;">
+                        📥 Exportar
+                    </button>
                 </div>
             </div>
-
-            <!-- Botón Exportar -->
-            <button class="btn-export" id="btnExport">
-                📥 Exportar Datos
-            </button>
         </aside>
 
         <!-- Área principal: Canvas del Mapa Mental -->

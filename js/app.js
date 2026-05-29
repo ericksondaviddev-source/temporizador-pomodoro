@@ -220,10 +220,10 @@ async function deleteTaskFromFirestore(taskId) {
     } catch (e) { console.error('Delete task error', e); }
 }
 
-// ---- 7. PERFIL ----
-function toggleProfileSection() {
-    const content = document.getElementById('profileContent');
-    const toggle = document.getElementById('profileToggle');
+// ---- 7. SIDEBAR SECTIONS ----
+function toggleSidebarSection(section) {
+    const content = document.getElementById(section + 'SectionContent');
+    const toggle = document.getElementById(section + 'ToggleBtn');
     if (content && toggle) {
         content.classList.toggle('collapsed');
         toggle.classList.toggle('collapsed');
@@ -441,12 +441,18 @@ function deleteTask(taskId, e) {
     renderTasks(); renderBubbles(); updateStats();
 }
 function renderBubbles() {
+    console.log('renderBubbles called, tasks:', appState.tasks.length);
     const old = elements.canvasArea.querySelectorAll('.task-bubble, .svg-overlay, .day-bubble');
     old.forEach(el => el.remove());
-    if (!appState.tasks.length) { elements.canvasPlaceholder.style.display = 'block'; return; }
+    if (!appState.tasks || appState.tasks.length === 0) {
+        console.log('No tasks, showing placeholder');
+        if (elements.canvasPlaceholder) elements.canvasPlaceholder.style.display = 'block';
+        return;
+    }
     elements.canvasPlaceholder.style.display = 'none';
     const rect = elements.canvasArea.getBoundingClientRect();
-    const cx = rect.width / 2, cy = rect.height / 2;
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
     svg.classList.add('svg-overlay');
@@ -700,4 +706,4 @@ window.loadPreset = loadPreset;
 window.deletePreset = deletePreset;
 window.toggleTaskBar = toggleTaskBar;
 window.deleteTask = deleteTask;
-window.toggleProfileSection = toggleProfileSection;
+window.toggleSidebarSection = toggleSidebarSection;

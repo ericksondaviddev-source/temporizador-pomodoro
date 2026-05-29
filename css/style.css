@@ -345,6 +345,64 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+
+.sidebar-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    gap: 0.5rem;
+}
+
+.sidebar-section-header:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-section-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.sidebar-section-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    padding: 0.2rem;
+}
+
+.sidebar-section-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.sidebar-section-content {
+    padding: 0 0.75rem 0.75rem;
+    display: block;
+}
+
+.sidebar-section-content.collapsed {
+    display: none;
+}
+
+.profile-container.hidden {
+    display: none;
+}
+
+/* Sidebar Collapsible Sections */
+.sidebar-section {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .sidebar-section-header {
