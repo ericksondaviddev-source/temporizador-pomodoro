@@ -377,9 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, (user) => { updateAuthUI(user); if (user) loadTasksFromFirestore(); });
 
-    elements.btnLogin.addEventListener('click', () => { playClick(); isRegistering = false; toggleAuthMode(); elements.authModal.classList.add('active'); });
+    elements.btnLogin.addEventListener('click', () => { elements.authModal.classList.add('active'); });
     elements.closeAuthModal.addEventListener('click', () => { elements.authModal.classList.remove('active'); elements.authForm.reset(); });
-    elements.authToggleBtn.addEventListener('click', () => { playClick(); toggleAuthMode(); });
+    elements.authToggleBtn.addEventListener('click', () => { isRegistering = !isRegistering; toggleAuthMode(); });
     elements.authForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = elements.authEmail.value, password = elements.authPassword.value;
